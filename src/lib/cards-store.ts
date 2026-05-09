@@ -1,4 +1,4 @@
-import { and, desc, eq, lt, sql } from "drizzle-orm";
+import { and, desc, eq, lt, sql, type SQL } from "drizzle-orm";
 import { getDb, schema } from "@/db/client";
 import type { CardData } from "@/components/card/Card";
 import type { ColorTheme } from "@/db/schema";
@@ -42,6 +42,7 @@ export type FeedSort = "latest" | "trending";
 export type ListFeedOpts = {
   cursor?: string | null;
   sort?: FeedSort;
+  theme?: ColorTheme | null;
 };
 
 export async function getCardById(id: string): Promise<CardData | null> {
@@ -78,18 +79,23 @@ export async function getRawStoryById(id: string): Promise<string | null> {
 export async function listFeed(opts: ListFeedOpts = {}): Promise<FeedPage> {
   const sort = opts.sort ?? "latest";
   const cursor = opts.cursor ?? null;
+  const theme = opts.theme ?? null;
 
   if (!dbConfigured()) {
-    // Mock mode: return all 8 mocks. Trending sorts by cheers desc.
-    const cards =
-      sort === "trending"
-        ? [...MOCK_CARDS].sort((a, b) => b.cheersCount - a.cheersCount)
-        : MOCK_CARDS;
+    let cards = theme
+      ? MOCK_CARDS.filter((c) => c.colorTheme === theme)
+      : MOCK_CARDS;
+    if (sort === "trending") {
+      cards = [...cards].sort((a, b) => b.cheersCount - a.cheersCount);
+    }
     return { cards, nextCursor: null };
   }
 
   const db = getDb();
-  const conditions = [eq(schema.cards.isPublic, true)];
+  const conditions: SQL[] = [eq(schema.cards.isPublic, true)];
+  if (theme) {
+    conditions.push(eq(schema.cards.colorTheme, theme));
+  }
 
   if (sort === "trending") {
     // Top by cheers, recency tiebreak. v1 returns one page; cursor

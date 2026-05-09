@@ -3,7 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { CardData } from "./Card";
-import { loadRawStory, saveCard, saveRawStory } from "@/lib/card-storage";
+import {
+  loadRawStory,
+  markCreated,
+  saveCard,
+  saveRawStory,
+} from "@/lib/card-storage";
 import { VIBE_MODIFIERS, type VibeModifier } from "@/lib/claude";
 
 type Props = {
@@ -56,6 +61,7 @@ export function RefinePicker({ cardId }: Props) {
 
       saveCard(body.card);
       saveRawStory(body.card.id, body.rawStory);
+      markCreated(body.card.id);
       router.push(`/card/${body.card.id}`);
     } catch (err) {
       console.error("[refine]", err);

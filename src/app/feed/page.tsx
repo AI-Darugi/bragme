@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { FeedFilters } from "@/components/FeedFilters";
 import { FeedGrid } from "@/components/FeedGrid";
-import { FeedTabs } from "@/components/FeedTabs";
 import { RewardedAdGate } from "@/components/RewardedAdGate";
 import { listFeed, type FeedSort } from "@/lib/cards-store";
+import { COLOR_THEMES, type ColorTheme } from "@/db/schema";
 
 export const metadata = {
   title: "Feed",
@@ -12,16 +13,28 @@ export const metadata = {
 // Always render fresh — feed must reflect new cards immediately.
 export const dynamic = "force-dynamic";
 
-type SearchParams = { sort?: string };
+type SearchParams = { sort?: string; theme?: string };
+
+function pickSort(value: string | undefined): FeedSort {
+  return value === "trending" ? "trending" : "latest";
+}
+
+function pickTheme(value: string | undefined): ColorTheme | null {
+  if (!value) return null;
+  return (COLOR_THEMES as readonly string[]).includes(value)
+    ? (value as ColorTheme)
+    : null;
+}
 
 export default async function FeedPage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const { sort: sortParam } = await searchParams;
-  const sort: FeedSort = sortParam === "trending" ? "trending" : "latest";
-  const { cards } = await listFeed({ sort });
+  const { sort: sortParam, theme: themeParam } = await searchParams;
+  const sort = pickSort(sortParam);
+  const theme = pickTheme(themeParam);
+  const { cards } = await listFeed({ sort, theme });
 
   const subhead =
     sort === "trending"
@@ -40,20 +53,34 @@ export default async function FeedPage({
         <p className="mt-2 text-sm text-muted sm:text-base">{subhead}</p>
       </header>
 
-      <FeedTabs active={sort} />
+      <FeedFilters sort={sort} theme={theme} />
 
       <RewardedAdGate>
         <FeedGrid cards={cards} />
         <p className="mt-12 text-center text-sm text-muted">
           {cards.length === 0 ? (
             <>
-              Nothing here yet —{" "}
-              <Link
-                href="/"
-                className="underline-offset-4 hover:text-foreground hover:underline"
-              >
-                be the first to spill →
-              </Link>
+              {theme ? (
+                <>
+                  No {theme} cards yet —{" "}
+                  <Link
+                    href="/"
+                    className="underline-offset-4 hover:text-foreground hover:underline"
+                  >
+                    be the first →
+                  </Link>
+                </>
+              ) : (
+                <>
+                  Nothing here yet —{" "}
+                  <Link
+                    href="/"
+                    className="underline-offset-4 hover:text-foreground hover:underline"
+                  >
+                    be the first to spill →
+                  </Link>
+                </>
+              )}
             </>
           ) : (
             <>
