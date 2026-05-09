@@ -33,6 +33,9 @@ const VARIANTS_BY_LAYOUT: Record<LayoutMode, CardVariant[]> = {
   magazine: ["magazine"],
   receipt: ["receipt"],
   notebook: ["notebook"],
+  trading: ["trading"],
+  stamp: ["stamp"],
+  manga: ["manga"],
 };
 
 export function CardDetail({ data, watermark, premiumUrl }: Props) {
@@ -163,6 +166,12 @@ function labelFor(variant: CardVariant): string {
       return "receipt";
     case "notebook":
       return "notebook";
+    case "trading":
+      return "trading card";
+    case "stamp":
+      return "stamp";
+    case "manga":
+      return "manga panel";
   }
 }
 

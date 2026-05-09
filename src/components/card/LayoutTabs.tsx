@@ -6,7 +6,10 @@ export type LayoutMode =
   | "polaroid"
   | "magazine"
   | "receipt"
-  | "notebook";
+  | "notebook"
+  | "trading"
+  | "stamp"
+  | "manga";
 
 type Props = {
   value: LayoutMode;
@@ -20,6 +23,9 @@ const TABS: Array<{ value: LayoutMode; label: string; sub: string }> = [
   { value: "magazine", label: "📰 Magazine", sub: "cover story" },
   { value: "receipt", label: "🧾 Receipt", sub: "itemized" },
   { value: "notebook", label: "📓 Notebook", sub: "journal page" },
+  { value: "trading", label: "🎴 Trading", sub: "TCG card" },
+  { value: "stamp", label: "📮 Stamp", sub: "vintage post" },
+  { value: "manga", label: "💢 Manga", sub: "B&W panel" },
 ];
 
 export function LayoutTabs({ value, onChange }: Props) {

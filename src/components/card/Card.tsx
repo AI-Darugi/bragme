@@ -8,7 +8,10 @@ export type CardVariant =
   | "polaroid"
   | "magazine"
   | "receipt"
-  | "notebook";
+  | "notebook"
+  | "trading"
+  | "stamp"
+  | "manga";
 
 export type CardData = {
   id: string;
@@ -76,6 +79,33 @@ export function Card({
     case "notebook":
       return (
         <NotebookLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "trading":
+      return (
+        <TradingLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "stamp":
+      return (
+        <StampLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "manga":
+      return (
+        <MangaLayout
           data={data}
           theme={theme}
           watermark={watermark}
@@ -570,6 +600,236 @@ function NotebookLayout({ data, theme, watermark, className }: LayoutProps) {
               bragme.app
             </span>
           )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/**
+ * Trading card / TCG style: gold-leaf outer frame, gradient inner with
+ * the emoji as the "creature artwork," brag points as moves with the
+ * theme as the "type." Aspect 5:7 to feel like a real card.
+ */
+function TradingLayout({ data, theme, watermark, className }: LayoutProps) {
+  const moves = data.bragPoints.slice(0, 3);
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="trading"
+      className={[
+        "relative w-full max-w-[400px] aspect-[5/7] overflow-hidden rounded-2xl p-2.5 shadow-2xl",
+        "bg-[linear-gradient(135deg,#fef3c7_0%,#fde68a_50%,#fbbf24_100%)]",
+        className ?? "",
+      ].join(" ")}
+    >
+      <div
+        className={[
+          "flex h-full w-full flex-col overflow-hidden rounded-xl",
+          theme.gradient,
+          theme.text,
+        ].join(" ")}
+      >
+        <header className="flex items-start justify-between px-4 pt-4">
+          <h2 className="font-serif text-lg font-bold leading-tight tracking-tight">
+            {data.title}
+          </h2>
+          <div className="flex flex-col items-end leading-none">
+            <span
+              className={`font-mono text-[9px] uppercase tracking-[0.2em] ${theme.subtext}`}
+            >
+              cheers
+            </span>
+            <span className="font-mono text-2xl font-bold tabular-nums">
+              {data.cheersCount}
+            </span>
+          </div>
+        </header>
+
+        <div className="relative mx-3 mt-2 flex aspect-square items-center justify-center overflow-hidden rounded-lg border-2 border-white/30 bg-white/15">
+          <span
+            className="text-[7rem] leading-none drop-shadow-[0_4px_8px_rgba(0,0,0,0.25)]"
+            aria-hidden
+          >
+            {data.emoji}
+          </span>
+        </div>
+
+        <div
+          className={`mx-4 mt-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.2em] ${theme.subtext}`}
+        >
+          <span>@{data.nickname}</span>
+          <span>{data.colorTheme} type</span>
+        </div>
+
+        <ul className="mx-4 mt-2 flex-1 space-y-0">
+          {moves.map((p, i) => (
+            <li
+              key={i}
+              className={`flex items-start gap-2 border-b ${theme.divider} py-1.5 text-[11px] leading-snug last:border-b-0`}
+            >
+              <span className="mt-0.5">★</span>
+              <span className="flex-1 font-medium">{p}</span>
+            </li>
+          ))}
+        </ul>
+
+        <footer className="mx-4 mb-3 mt-1 border-t-2 border-current border-opacity-40 pt-2">
+          <p
+            className={`text-[10px] italic leading-snug ${theme.subtext}`}
+          >
+            &ldquo;{data.vibeCaption}&rdquo;
+          </p>
+          {watermark && (
+            <p
+              className={`mt-1 text-center font-mono text-[8px] uppercase tracking-[0.3em] ${theme.subtext}`}
+            >
+              ★ BRAGME · NO.{data.id.slice(0, 3).toUpperCase()} ★
+            </p>
+          )}
+        </footer>
+      </div>
+    </article>
+  );
+}
+
+/**
+ * Vintage postage stamp: cream paper with a double-line border, theme
+ * gradient as the stamp art rectangle, emoji as the artwork, title as
+ * the legend, cheers as the "denomination."
+ */
+function StampLayout({ data, theme, watermark, className }: LayoutProps) {
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="stamp"
+      className={[
+        "relative w-full max-w-[380px] aspect-[7/9] overflow-hidden bg-[#f4eed8] p-3 shadow-2xl",
+        className ?? "",
+      ].join(" ")}
+    >
+      <div className="flex h-full w-full flex-col border-[3px] border-double border-stone-700 p-3">
+        <div className="text-center font-mono text-[10px] font-bold uppercase tracking-[0.4em] text-stone-700">
+          BragMe · Postage
+        </div>
+        <div className="text-center font-mono text-[8px] uppercase tracking-[0.25em] text-stone-500">
+          {new Date().getFullYear()} · {data.colorTheme}
+        </div>
+
+        <div
+          className={[
+            "my-3 flex flex-1 items-center justify-center rounded-sm",
+            theme.gradient,
+          ].join(" ")}
+        >
+          <span
+            className="text-[6rem] leading-none drop-shadow-[0_3px_6px_rgba(0,0,0,0.25)]"
+            aria-hidden
+          >
+            {data.emoji}
+          </span>
+        </div>
+
+        <div className="text-center">
+          <h2 className="px-2 font-serif text-sm font-bold uppercase leading-tight tracking-tight text-stone-800">
+            {data.title}
+          </h2>
+          <p className="mt-1 line-clamp-2 px-2 text-[9px] italic leading-snug text-stone-600">
+            &ldquo;{data.vibeCaption}&rdquo;
+          </p>
+        </div>
+
+        <div className="mt-2 flex items-end justify-between font-mono text-[8px] uppercase tracking-[0.2em] text-stone-500">
+          <span>@{data.nickname}</span>
+          <span className="font-bold">★ {data.cheersCount}¢</span>
+        </div>
+
+        {watermark && (
+          <div className="mt-1 text-center font-mono text-[7px] uppercase tracking-[0.3em] text-stone-400">
+            BRAGME.APP
+          </div>
+        )}
+      </div>
+    </article>
+  );
+}
+
+/**
+ * Manga panel: black-and-white aesthetic regardless of theme. Three
+ * stacked panels separated by 4px black gaps — top has the emoji with
+ * SFX text, middle has the title in heavy serif, bottom has brag points
+ * as caption text and the handle + caption signature.
+ */
+function MangaLayout({ data, theme, watermark, className }: LayoutProps) {
+  void theme; // manga deliberately ignores theme color
+  const captions = data.bragPoints.slice(0, 4);
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="manga"
+      className={[
+        "relative w-full max-w-[400px] aspect-[9/16] overflow-hidden bg-black p-1 shadow-2xl",
+        className ?? "",
+      ].join(" ")}
+    >
+      <div className="grid h-full grid-rows-[5fr_3fr_5fr] gap-1">
+        <div className="relative flex items-center justify-center overflow-hidden bg-white">
+          <span className="text-[8rem] leading-none">{data.emoji}</span>
+          <span
+            className="absolute right-3 top-3 font-serif text-3xl font-black italic uppercase text-black"
+            style={{
+              transform: "rotate(-10deg)",
+              WebkitTextStroke: "1.5px black",
+              textShadow: "3px 3px 0 #fff",
+            }}
+            aria-hidden
+          >
+            BAM!
+          </span>
+          <span
+            className="absolute bottom-3 left-3 font-serif text-base font-black italic uppercase text-black"
+            style={{
+              transform: "rotate(3deg)",
+              WebkitTextStroke: "1px black",
+            }}
+            aria-hidden
+          >
+            ★ZOOM★
+          </span>
+        </div>
+
+        <div className="flex items-center justify-center bg-white px-3 py-2">
+          <h2 className="text-balance text-center font-serif text-2xl font-black uppercase leading-[0.95] tracking-tight text-black">
+            &ldquo;{data.title}&rdquo;
+          </h2>
+        </div>
+
+        <div className="flex flex-col bg-white p-3">
+          <ul className="flex-1 space-y-1.5">
+            {captions.map((p, i) => (
+              <li
+                key={i}
+                className="border-l-[3px] border-black pl-2 font-serif text-[13px] italic leading-snug text-black"
+              >
+                {p}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-2 flex items-end justify-between border-t border-black pt-1.5">
+            <div className="min-w-0 flex-1">
+              <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-black/70">
+                @{data.nickname}
+              </p>
+              <p className="mt-0.5 line-clamp-1 font-serif text-xs italic text-black">
+                — {data.vibeCaption}
+              </p>
+            </div>
+            {watermark && (
+              <p className="ml-2 shrink-0 font-mono text-[8px] uppercase tracking-[0.3em] text-black/50">
+                BRAGME MANGA
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </article>
