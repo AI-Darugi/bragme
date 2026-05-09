@@ -31,6 +31,38 @@ function pickLoadingLine(prev?: string): string {
   return next;
 }
 
+type ApiResponse =
+  | { card: import("./card/Card").CardData }
+  | { error: { code: string; message: string } };
+
+async function callGenerate(rawStory: string): Promise<import("./card/Card").CardData> {
+  const res = await fetch("/api/generate", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ raw_story: rawStory }),
+  });
+
+  // Server tells us no API key is configured → fall back to local mock so
+  // dev/preview environments still produce a card. Real production deploys
+  // will always have ANTHROPIC_API_KEY set.
+  if (res.status === 503) {
+    const body = (await res.json().catch(() => null)) as ApiResponse | null;
+    if (body && "error" in body && body.error.code === "AI_NOT_CONFIGURED") {
+      console.info("[bragme] AI key not configured — using local mock generator");
+      // Brief artificial delay so the loading state is still visible.
+      await new Promise((r) => setTimeout(r, 1000));
+      return mockGenerate({ rawStory });
+    }
+  }
+
+  const body = (await res.json().catch(() => null)) as ApiResponse | null;
+  if (!res.ok || !body || "error" in body) {
+    const msg = body && "error" in body ? body.error.message : NETWORK_ERROR;
+    throw new Error(msg);
+  }
+  return body.card;
+}
+
 export function BragForm() {
   const router = useRouter();
   const [story, setStory] = useState("");
@@ -72,14 +104,12 @@ export function BragForm() {
     }, 1100);
 
     try {
-      // TODO(step 3): replace mockGenerate with `await fetch("/api/generate", ...)`
-      await new Promise((r) => setTimeout(r, 1800));
-      const card = mockGenerate({ rawStory: story.trim() });
+      const card = await callGenerate(story.trim());
       saveCard(card);
       router.push(`/card/${card.id}`);
     } catch (err) {
       console.error(err);
-      setError(NETWORK_ERROR);
+      setError(err instanceof Error ? err.message : NETWORK_ERROR);
       setGenerating(false);
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
