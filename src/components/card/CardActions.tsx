@@ -6,8 +6,10 @@ import type { CardData, CardVariant } from "./Card";
 
 type Props = {
   data: CardData;
-  /** Ref selector for the visible card node, queried via document.querySelector */
+  /** Selector prefix used to find the visible card node — appended with `[data-variant="..."]`. */
   targetSelector: string;
+  /** Variants currently rendered in the page. CardActions emits one Download button per. */
+  variants: CardVariant[];
 };
 
 const PIXEL_RATIO = 3;
@@ -15,7 +17,14 @@ const PIXEL_RATIO = 3;
 const SHARE_FAILURE = "Couldn't open share. Try the download button instead.";
 const DOWNLOAD_FAILURE = "Couldn't bake the PNG. Refresh and try again?";
 
-export function CardActions({ data, targetSelector }: Props) {
+const VARIANT_LABEL: Record<CardVariant, string> = {
+  story: "9:16",
+  post: "1:1",
+  photocard: "Photocard",
+  polaroid: "Polaroid",
+};
+
+export function CardActions({ data, targetSelector, variants }: Props) {
   const [busy, setBusy] = useState<CardVariant | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,23 +81,18 @@ export function CardActions({ data, targetSelector }: Props) {
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => exportPng("story")}
-          disabled={busy !== null}
-          className="flex-1 rounded-full border border-foreground/15 bg-foreground/5 px-4 py-2.5 text-sm font-medium hover:bg-foreground/10 disabled:opacity-50"
-        >
-          {busy === "story" ? "Baking…" : "Download 9:16"}
-        </button>
-        <button
-          type="button"
-          onClick={() => exportPng("post")}
-          disabled={busy !== null}
-          className="flex-1 rounded-full border border-foreground/15 bg-foreground/5 px-4 py-2.5 text-sm font-medium hover:bg-foreground/10 disabled:opacity-50"
-        >
-          {busy === "post" ? "Baking…" : "Download 1:1"}
-        </button>
+      <div className="flex flex-wrap gap-2">
+        {variants.map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => exportPng(v)}
+            disabled={busy !== null}
+            className="flex-1 min-w-[140px] rounded-full border border-foreground/15 bg-foreground/5 px-4 py-2.5 text-sm font-medium hover:bg-foreground/10 disabled:opacity-50"
+          >
+            {busy === v ? "Baking…" : `Download ${VARIANT_LABEL[v]}`}
+          </button>
+        ))}
       </div>
       <button
         type="button"
