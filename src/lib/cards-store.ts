@@ -37,6 +37,13 @@ export type FeedPage = {
   nextCursor: string | null;
 };
 
+export type FeedSort = "latest" | "trending";
+
+export type ListFeedOpts = {
+  cursor?: string | null;
+  sort?: FeedSort;
+};
+
 export async function getCardById(id: string): Promise<CardData | null> {
   if (!dbConfigured()) {
     return getMockCardById(id) ?? null;
@@ -68,16 +75,36 @@ export async function getRawStoryById(id: string): Promise<string | null> {
   return rows[0]?.rawStory ?? null;
 }
 
-export async function listFeed(
-  cursor: string | null = null,
-): Promise<FeedPage> {
-  if (!dbConfigured()) {
-    // Mock mode: return all 8 mocks at once. No real pagination.
-    return { cards: MOCK_CARDS, nextCursor: null };
-  }
-  const db = getDb();
+export async function listFeed(opts: ListFeedOpts = {}): Promise<FeedPage> {
+  const sort = opts.sort ?? "latest";
+  const cursor = opts.cursor ?? null;
 
+  if (!dbConfigured()) {
+    // Mock mode: return all 8 mocks. Trending sorts by cheers desc.
+    const cards =
+      sort === "trending"
+        ? [...MOCK_CARDS].sort((a, b) => b.cheersCount - a.cheersCount)
+        : MOCK_CARDS;
+    return { cards, nextCursor: null };
+  }
+
+  const db = getDb();
   const conditions = [eq(schema.cards.isPublic, true)];
+
+  if (sort === "trending") {
+    // Top by cheers, recency tiebreak. v1 returns one page; cursor
+    // pagination on a moving target (cheers can change) is messy and
+    // can wait until we have enough data to need it.
+    const rows = await db
+      .select()
+      .from(schema.cards)
+      .where(and(...conditions))
+      .orderBy(desc(schema.cards.cheersCount), desc(schema.cards.createdAt))
+      .limit(FEED_PAGE_SIZE);
+    return { cards: rows.map(toCardData), nextCursor: null };
+  }
+
+  // sort === "latest" with cursor pagination
   if (cursor) {
     const cursorDate = new Date(cursor);
     if (!Number.isNaN(cursorDate.getTime())) {
