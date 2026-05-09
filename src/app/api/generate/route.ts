@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { insertCard } from "@/lib/cards-store";
 import { generateBragCard } from "@/lib/claude";
 import { generateHandle } from "@/lib/handle";
 import { checkRate } from "@/lib/rate-limit";
@@ -71,19 +72,36 @@ export async function POST(request: Request) {
     );
   }
 
-  // 4. Generate
+  // 4. Generate + persist
   try {
     const generated = await generateBragCard(rawStory);
-    const card = {
-      id: crypto.randomUUID(),
-      nickname: generateHandle(),
+    const handle = generateHandle();
+
+    // If DATABASE_URL is set, INSERT and use the DB-generated row (real uuid,
+    // server timestamp). If not, build a session-only card so the form still
+    // works in mock-only environments.
+    const persisted = await insertCard({
+      nickname: handle,
+      rawStory,
       title: generated.title,
       bragPoints: generated.bragPoints,
       vibeCaption: generated.vibeCaption,
       emoji: generated.emoji,
       colorTheme: generated.colorTheme,
-      cheersCount: 0,
-    };
+    });
+
+    const card =
+      persisted ?? {
+        id: crypto.randomUUID(),
+        nickname: handle,
+        title: generated.title,
+        bragPoints: generated.bragPoints,
+        vibeCaption: generated.vibeCaption,
+        emoji: generated.emoji,
+        colorTheme: generated.colorTheme,
+        cheersCount: 0,
+      };
+
     return Response.json({ card });
   } catch (err) {
     if (err instanceof Anthropic.AuthenticationError) {

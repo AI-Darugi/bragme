@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { CardDetail } from "@/components/card/CardDetail";
 import { CardClientView } from "@/components/card/CardClientView";
-import { getMockCardById } from "@/lib/mock";
+import { getCardById } from "@/lib/cards-store";
 
 type RouteParams = { id: string };
 type RouteSearch = { premium?: string };
@@ -12,7 +12,7 @@ export async function generateMetadata({
   params: Promise<RouteParams>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const card = getMockCardById(id);
+  const card = await getCardById(id);
 
   if (!card) {
     return {
@@ -28,7 +28,6 @@ export async function generateMetadata({
     openGraph: {
       title: card.title,
       description,
-      // /api/og?id=... lands in step 9 SEO sweep — meta tags are ready early.
       images: [{ url: `/api/og?id=${id}`, width: 1200, height: 630 }],
     },
     twitter: {
@@ -51,7 +50,7 @@ export default async function CardPage({
   const { premium } = await searchParams;
   const watermark = !premium;
   const premiumUrl = process.env.LEMON_PREMIUM_URL ?? null;
-  const card = getMockCardById(id);
+  const card = await getCardById(id);
 
   return (
     <main className="mx-auto flex w-full flex-1 flex-col items-center px-6 py-12">
@@ -62,6 +61,9 @@ export default async function CardPage({
           premiumUrl={premiumUrl}
         />
       ) : (
+        // Card not in DB / mocks — could still be a freshly-generated
+        // session-only card (DATABASE_URL unset path). Let the client view
+        // try sessionStorage before giving up.
         <CardClientView
           id={id}
           watermark={watermark}

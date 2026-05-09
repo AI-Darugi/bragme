@@ -54,6 +54,14 @@ export function CardDetail({ data, watermark, premiumUrl }: Props) {
     setCheered(true);
     markCheered(data.id);
     saveCheerCount(data.id, next);
+
+    // Fire-and-forget: persist to DB if configured. UI already updated
+    // optimistically; a 409/500 doesn't roll the local state back.
+    void fetch("/api/cheer", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ card_id: data.id }),
+    }).catch((err) => console.warn("[cheer] persist failed", err));
   }
 
   const customized: CardData = {

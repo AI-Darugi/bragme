@@ -1,18 +1,20 @@
 import Link from "next/link";
 import { FeedGrid } from "@/components/FeedGrid";
 import { RewardedAdGate } from "@/components/RewardedAdGate";
-import { MOCK_CARDS } from "@/lib/mock";
+import { listFeed } from "@/lib/cards-store";
 
 export const metadata = {
   title: "Feed",
   description: "Strangers, mid-glow-up. Anonymous brag cards from the internet.",
 };
 
-export default function FeedPage() {
-  // TODO(step 8/9): replace MOCK_CARDS with cursor-paginated Drizzle query
-  // SELECT … FROM cards WHERE is_public ORDER BY created_at DESC LIMIT 20.
-  // Wire IntersectionObserver-based load-more on the client.
-  const cards = MOCK_CARDS;
+// Always render fresh — feed must reflect new cards immediately.
+export const dynamic = "force-dynamic";
+
+export default async function FeedPage() {
+  // TODO(post-MVP): wire IntersectionObserver client-side load-more
+  // hitting /api/feed?cursor=…. For v1 the first page (20 cards) is plenty.
+  const { cards } = await listFeed();
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 py-12">
@@ -31,13 +33,27 @@ export default function FeedPage() {
       <RewardedAdGate>
         <FeedGrid cards={cards} />
         <p className="mt-12 text-center text-sm text-muted">
-          End of feed —{" "}
-          <Link
-            href="/"
-            className="underline-offset-4 hover:text-foreground hover:underline"
-          >
-            be the first to spill →
-          </Link>
+          {cards.length === 0 ? (
+            <>
+              Nothing here yet —{" "}
+              <Link
+                href="/"
+                className="underline-offset-4 hover:text-foreground hover:underline"
+              >
+                be the first to spill →
+              </Link>
+            </>
+          ) : (
+            <>
+              End of feed —{" "}
+              <Link
+                href="/"
+                className="underline-offset-4 hover:text-foreground hover:underline"
+              >
+                add yours →
+              </Link>
+            </>
+          )}
         </p>
       </RewardedAdGate>
     </main>
