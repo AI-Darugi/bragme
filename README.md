@@ -18,7 +18,8 @@ A global Gen-Z web app: dump your messy self-description into a textarea, and AI
 ```bash
 cp .env.local.example .env.local   # fill values
 npm install
-npm run dev
+npm run dev          # webpack — works everywhere
+npm run dev:turbo    # Turbopack — faster, but panics on paths with non-ASCII chars
 ```
 
 ## Required env vars

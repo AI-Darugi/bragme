@@ -1,21 +1,37 @@
+import Link from "next/link";
+import { BragForm } from "@/components/BragForm";
+
 export default function Home() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center px-6 py-20">
-      <div className="flex flex-col items-center gap-6 text-center max-w-2xl">
-        <span className="font-mono text-xs uppercase tracking-[0.2em] text-muted">
-          v0 · scaffold
+    <main className="flex flex-1 flex-col items-center px-6 py-14 sm:py-20">
+      <section className="flex w-full max-w-2xl flex-col items-center gap-5 text-center">
+        <span className="font-mono text-xs uppercase tracking-[0.28em] text-muted">
+          beta · no login
         </span>
-        <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight">
-          BragMe
+        <h1 className="text-balance text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
+          Spill your mess.
+          <br />
+          We&apos;ll find your magic.
         </h1>
-        <p className="text-lg sm:text-xl text-muted">
-          Spill your mess. We&apos;ll find your magic.
+        <p className="max-w-xl text-pretty text-base text-muted sm:text-lg">
+          Type the chaos. AI turns it into a brag card the internet wants — pick
+          a vibe, share it, save the PNG.
         </p>
-        <p className="text-sm text-muted/80 max-w-md">
-          Step 1 complete: Next.js 16.2 + React 19 + Tailwind v4 + React
-          Compiler. Form, AI, and cards land in steps 3–5.
-        </p>
-      </div>
+      </section>
+
+      <section className="mt-10 flex w-full justify-center sm:mt-14">
+        <BragForm />
+      </section>
+
+      <p className="mt-10 text-sm text-muted">
+        Or peek at what others made →{" "}
+        <Link
+          href="/feed"
+          className="underline-offset-4 hover:text-foreground hover:underline"
+        >
+          the feed
+        </Link>
+      </p>
     </main>
   );
 }
