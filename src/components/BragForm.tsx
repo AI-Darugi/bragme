@@ -15,6 +15,14 @@ const LOADING_LINES = [
   "Asking the universe for your color…",
   "Cooking up your main character moment…",
   "Untangling the lore…",
+  "Finding your delulu range…",
+  "Translating chaos into a vibe…",
+  "Auditing your soft launch…",
+  "Calling your shot for you…",
+  "Reading between your group-chat lines…",
+  "Bottling the main character energy…",
+  "Picking the receipts that go on the card…",
+  "Choosing your color before you do…",
 ];
 
 const PLACEHOLDER =
@@ -29,38 +37,6 @@ function pickLoadingLine(prev?: string): string {
     next = LOADING_LINES[Math.floor(Math.random() * LOADING_LINES.length)];
   }
   return next;
-}
-
-type ApiResponse =
-  | { card: import("./card/Card").CardData }
-  | { error: { code: string; message: string } };
-
-async function callGenerate(rawStory: string): Promise<import("./card/Card").CardData> {
-  const res = await fetch("/api/generate", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ raw_story: rawStory }),
-  });
-
-  // Server tells us no API key is configured → fall back to local mock so
-  // dev/preview environments still produce a card. Real production deploys
-  // will always have ANTHROPIC_API_KEY set.
-  if (res.status === 503) {
-    const body = (await res.json().catch(() => null)) as ApiResponse | null;
-    if (body && "error" in body && body.error.code === "AI_NOT_CONFIGURED") {
-      console.info("[bragme] AI key not configured — using local mock generator");
-      // Brief artificial delay so the loading state is still visible.
-      await new Promise((r) => setTimeout(r, 1000));
-      return mockGenerate({ rawStory });
-    }
-  }
-
-  const body = (await res.json().catch(() => null)) as ApiResponse | null;
-  if (!res.ok || !body || "error" in body) {
-    const msg = body && "error" in body ? body.error.message : NETWORK_ERROR;
-    throw new Error(msg);
-  }
-  return body.card;
 }
 
 export function BragForm() {
@@ -118,6 +94,10 @@ export function BragForm() {
     }
   }
 
+  if (generating) {
+    return <GeneratingView line={loadingLine} />;
+  }
+
   const charCount = story.length;
   const overLimit = charCount > MAX_STORY;
 
@@ -134,10 +114,9 @@ export function BragForm() {
         <textarea
           value={story}
           onChange={(e) => setStory(e.target.value)}
-          disabled={generating}
           rows={8}
           placeholder={PLACEHOLDER}
-          className="w-full resize-y rounded-2xl border border-foreground/15 bg-background px-4 py-3 text-base leading-relaxed outline-none placeholder:text-muted/60 focus:border-foreground/40 disabled:opacity-60"
+          className="w-full resize-y rounded-2xl border border-foreground/15 bg-background px-4 py-3 text-base leading-relaxed outline-none placeholder:text-muted/60 focus:border-foreground/40"
         />
         <div className="flex items-center justify-between text-xs text-muted">
           <span>
@@ -157,17 +136,9 @@ export function BragForm() {
 
       <button
         type="submit"
-        disabled={generating}
-        className="mt-2 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 text-base font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-60"
+        className="mt-2 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 text-base font-medium text-background transition-opacity hover:opacity-90"
       >
-        {generating ? (
-          <>
-            <Spinner />
-            <span>{loadingLine}</span>
-          </>
-        ) : (
-          "Generate my brag card →"
-        )}
+        Generate my brag card →
       </button>
 
       <p className="text-center text-xs text-muted">
@@ -188,28 +159,73 @@ export function BragForm() {
   );
 }
 
-function Spinner() {
+type ApiResponse =
+  | { card: import("./card/Card").CardData }
+  | { error: { code: string; message: string } };
+
+async function callGenerate(
+  rawStory: string,
+): Promise<import("./card/Card").CardData> {
+  const res = await fetch("/api/generate", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ raw_story: rawStory }),
+  });
+
+  if (res.status === 503) {
+    const body = (await res.json().catch(() => null)) as ApiResponse | null;
+    if (body && "error" in body && body.error.code === "AI_NOT_CONFIGURED") {
+      console.info("[bragme] AI key not configured — using local mock generator");
+      await new Promise((r) => setTimeout(r, 1000));
+      return mockGenerate({ rawStory });
+    }
+  }
+
+  const body = (await res.json().catch(() => null)) as ApiResponse | null;
+  if (!res.ok || !body || "error" in body) {
+    const msg = body && "error" in body ? body.error.message : NETWORK_ERROR;
+    throw new Error(msg);
+  }
+  return body.card;
+}
+
+function GeneratingView({ line }: { line: string }) {
   return (
-    <svg
-      className="h-4 w-4 animate-spin"
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden
-    >
-      <circle
-        cx="12"
-        cy="12"
-        r="9"
-        stroke="currentColor"
-        strokeOpacity="0.25"
-        strokeWidth="3"
-      />
-      <path
-        d="M21 12a9 9 0 0 1-9 9"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-    </svg>
+    <div className="flex w-full max-w-2xl flex-col items-center gap-7">
+      <div className="aspect-[9/16] w-[280px] overflow-hidden rounded-3xl bg-gradient-to-br from-foreground/5 via-foreground/10 to-foreground/5 shadow-xl">
+        <div className="flex h-full animate-pulse flex-col justify-between p-6">
+          <div className="flex items-center justify-between">
+            <div className="h-2.5 w-14 rounded-full bg-foreground/20" />
+            <div className="h-8 w-8 rounded-full bg-foreground/20" />
+          </div>
+          <div className="flex flex-col gap-4">
+            <div className="space-y-2">
+              <div className="h-5 w-5/6 rounded-md bg-foreground/25" />
+              <div className="h-5 w-2/3 rounded-md bg-foreground/25" />
+            </div>
+            <div className="space-y-1.5">
+              <div className="h-6 w-full rounded-full bg-foreground/15" />
+              <div className="h-6 w-5/6 rounded-full bg-foreground/15" />
+              <div className="h-6 w-2/3 rounded-full bg-foreground/15" />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <div className="h-2 w-1/3 rounded-full bg-foreground/15" />
+            <div className="h-3 w-3/5 rounded-full bg-foreground/15" />
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col items-center gap-1.5 text-center">
+        <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-muted">
+          brewing your card
+        </p>
+        <p
+          className="text-base text-foreground sm:text-lg"
+          aria-live="polite"
+        >
+          {line}
+        </p>
+      </div>
+    </div>
   );
 }

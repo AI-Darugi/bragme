@@ -6,6 +6,7 @@ import { Card, type CardData } from "./Card";
 import { CardActions } from "./CardActions";
 import { ThemePicker } from "./ThemePicker";
 import { EmojiPicker } from "./EmojiPicker";
+import { ShareText } from "./ShareText";
 import { PremiumCta } from "@/components/PremiumCta";
 import { loadCard, saveCard } from "@/lib/card-storage";
 import {
@@ -117,6 +118,7 @@ export function CardDetail({ data, watermark, premiumUrl }: Props) {
           premiumUrl={premiumUrl}
         />
         <CheersRow count={cheers} cheered={cheered} onCheer={handleCheer} />
+        <ShareText data={customized} />
       </div>
 
       <Link
@@ -138,21 +140,36 @@ function CheersRow({
   cheered: boolean;
   onCheer: () => void;
 }) {
+  const [pulse, setPulse] = useState(false);
+
+  function handleClick() {
+    if (cheered) return;
+    setPulse(true);
+    setTimeout(() => setPulse(false), 400);
+    onCheer();
+  }
+
   return (
     <div className="flex items-center justify-between rounded-2xl border border-foreground/10 bg-foreground/5 px-4 py-3 text-sm">
       <span className="text-muted">
-        <span className="font-semibold text-foreground tabular-nums">
+        <span
+          className={[
+            "inline-block font-semibold text-foreground tabular-nums transition-transform duration-300",
+            pulse ? "scale-125" : "scale-100",
+          ].join(" ")}
+        >
           {count.toLocaleString()}
         </span>{" "}
         cheers
       </span>
       <button
         type="button"
-        onClick={onCheer}
+        onClick={handleClick}
         disabled={cheered}
         aria-pressed={cheered}
         className={[
-          "rounded-full px-4 py-1.5 font-mono text-xs font-medium uppercase tracking-[0.15em] transition",
+          "rounded-full px-4 py-1.5 font-mono text-xs font-medium uppercase tracking-[0.15em] transition-all duration-200",
+          pulse ? "scale-110" : "scale-100",
           cheered
             ? "cursor-default bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
             : "bg-foreground/10 hover:bg-foreground/20",
