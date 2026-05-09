@@ -8,6 +8,12 @@ import { ThemePicker } from "./ThemePicker";
 import { EmojiPicker } from "./EmojiPicker";
 import { PremiumCta } from "@/components/PremiumCta";
 import { loadCard, saveCard } from "@/lib/card-storage";
+import {
+  hasCheered,
+  loadCheerCount,
+  markCheered,
+  saveCheerCount,
+} from "@/lib/cheer-storage";
 import type { ColorTheme } from "@/db/schema";
 
 type Props = {
@@ -19,30 +25,43 @@ type Props = {
 export function CardDetail({ data, watermark, premiumUrl }: Props) {
   const [theme, setTheme] = useState<ColorTheme>(data.colorTheme);
   const [emoji, setEmoji] = useState(data.emoji);
+  const [cheers, setCheers] = useState(data.cheersCount);
+  const [cheered, setCheered] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
-  // Hydrate any prior session-stored customization for this card id.
   useEffect(() => {
     const stored = loadCard(data.id);
     if (stored) {
       setTheme(stored.colorTheme);
       setEmoji(stored.emoji);
     }
+    const storedCount = loadCheerCount(data.id);
+    if (storedCount !== null) setCheers(storedCount);
+    setCheered(hasCheered(data.id));
     setHydrated(true);
-    // We only want this on first mount per id, not whenever the parent
-    // happens to re-render with a fresh object literal.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.id]);
 
-  // Persist customization back so reloads + /card/[id] direct visits keep
-  // the user's chosen vibe. Skip until we've finished hydrating to avoid
-  // overwriting the override with the prop's defaults on first paint.
   useEffect(() => {
     if (!hydrated) return;
-    saveCard({ ...data, colorTheme: theme, emoji });
-  }, [data, theme, emoji, hydrated]);
+    saveCard({ ...data, colorTheme: theme, emoji, cheersCount: cheers });
+  }, [data, theme, emoji, cheers, hydrated]);
 
-  const customized: CardData = { ...data, colorTheme: theme, emoji };
+  function handleCheer() {
+    if (cheered) return;
+    const next = cheers + 1;
+    setCheers(next);
+    setCheered(true);
+    markCheered(data.id);
+    saveCheerCount(data.id, next);
+  }
+
+  const customized: CardData = {
+    ...data,
+    colorTheme: theme,
+    emoji,
+    cheersCount: cheers,
+  };
 
   return (
     <div className="flex w-full max-w-5xl flex-col items-center gap-10">
@@ -89,7 +108,7 @@ export function CardDetail({ data, watermark, premiumUrl }: Props) {
           alreadyPremium={!watermark}
           premiumUrl={premiumUrl}
         />
-        <CheersRow count={data.cheersCount} />
+        <CheersRow count={cheers} cheered={cheered} onCheer={handleCheer} />
       </div>
 
       <Link
@@ -102,7 +121,15 @@ export function CardDetail({ data, watermark, premiumUrl }: Props) {
   );
 }
 
-function CheersRow({ count }: { count: number }) {
+function CheersRow({
+  count,
+  cheered,
+  onCheer,
+}: {
+  count: number;
+  cheered: boolean;
+  onCheer: () => void;
+}) {
   return (
     <div className="flex items-center justify-between rounded-2xl border border-foreground/10 bg-foreground/5 px-4 py-3 text-sm">
       <span className="text-muted">
@@ -113,11 +140,17 @@ function CheersRow({ count }: { count: number }) {
       </span>
       <button
         type="button"
-        disabled
-        title="Cheering ships in step 8"
-        className="rounded-full bg-foreground/10 px-3 py-1 font-mono text-xs uppercase tracking-[0.15em] text-muted disabled:cursor-not-allowed"
+        onClick={onCheer}
+        disabled={cheered}
+        aria-pressed={cheered}
+        className={[
+          "rounded-full px-4 py-1.5 font-mono text-xs font-medium uppercase tracking-[0.15em] transition",
+          cheered
+            ? "cursor-default bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+            : "bg-foreground/10 hover:bg-foreground/20",
+        ].join(" ")}
       >
-        🥂 cheer (soon)
+        {cheered ? "🥂 cheered" : "🥂 cheer"}
       </button>
     </div>
   );
