@@ -9,15 +9,17 @@ export async function GET(request: Request) {
   const cursor = searchParams.get("cursor");
   const sortParam = searchParams.get("sort");
   const themeParam = searchParams.get("theme");
+  const qParam = searchParams.get("q");
 
   const sort: FeedSort = sortParam === "trending" ? "trending" : "latest";
   const theme: ColorTheme | null =
     themeParam && (COLOR_THEMES as readonly string[]).includes(themeParam)
       ? (themeParam as ColorTheme)
       : null;
+  const q = qParam ? qParam.slice(0, 100) : null;
 
   try {
-    const page = await listFeed({ cursor, sort, theme });
+    const page = await listFeed({ cursor, sort, theme, q });
     return Response.json(page);
   } catch (err) {
     console.error("[feed] db error", err);

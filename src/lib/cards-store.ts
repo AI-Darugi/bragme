@@ -1,4 +1,4 @@
-import { and, desc, eq, lt, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, ilike, lt, or, sql, type SQL } from "drizzle-orm";
 import { getDb, schema } from "@/db/client";
 import type { CardData } from "@/components/card/Card";
 import type { ColorTheme } from "@/db/schema";
@@ -43,6 +43,7 @@ export type ListFeedOpts = {
   cursor?: string | null;
   sort?: FeedSort;
   theme?: ColorTheme | null;
+  q?: string | null;
 };
 
 export async function getCardById(id: string): Promise<CardData | null> {
@@ -101,11 +102,21 @@ export async function listFeed(opts: ListFeedOpts = {}): Promise<FeedPage> {
   const sort = opts.sort ?? "latest";
   const cursor = opts.cursor ?? null;
   const theme = opts.theme ?? null;
+  const q = opts.q?.trim() || null;
 
   if (!dbConfigured()) {
     let cards = theme
       ? MOCK_CARDS.filter((c) => c.colorTheme === theme)
       : MOCK_CARDS;
+    if (q) {
+      const needle = q.toLowerCase();
+      cards = cards.filter(
+        (c) =>
+          c.title.toLowerCase().includes(needle) ||
+          c.vibeCaption.toLowerCase().includes(needle) ||
+          c.bragPoints.some((p) => p.toLowerCase().includes(needle)),
+      );
+    }
     if (sort === "trending") {
       cards = [...cards].sort((a, b) => b.cheersCount - a.cheersCount);
     }
@@ -116,6 +127,19 @@ export async function listFeed(opts: ListFeedOpts = {}): Promise<FeedPage> {
   const conditions: SQL[] = [eq(schema.cards.isPublic, true)];
   if (theme) {
     conditions.push(eq(schema.cards.colorTheme, theme));
+  }
+  if (q) {
+    // Title + vibe_caption are plain text columns. brag_points is jsonb; we
+    // cast it to text and ILIKE that as a cheap full-string match. Good
+    // enough at our scale — proper full-text search (tsvector) is a
+    // post-MVP optimization.
+    const needle = `%${q}%`;
+    const search = or(
+      ilike(schema.cards.title, needle),
+      ilike(schema.cards.vibeCaption, needle),
+      sql`${schema.cards.bragPoints}::text ILIKE ${needle}`,
+    );
+    if (search) conditions.push(search);
   }
 
   if (sort === "trending") {
