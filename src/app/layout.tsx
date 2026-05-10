@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { TopBar } from "@/components/TopBar";
 import { Footer } from "@/components/Footer";
+import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -60,6 +61,7 @@ export default function RootLayout({
         <TopBar />
         {children}
         <Footer />
+        <KeyboardShortcuts />
       </body>
     </html>
   );
