@@ -129,14 +129,19 @@ export function CardDetail({ data, watermark, premiumUrl }: Props) {
 
   return (
     <div className="flex w-full max-w-5xl flex-col items-center gap-10">
-      <header className="flex flex-col items-center gap-2 text-center">
+      <header className="flex flex-col items-center gap-3 text-center">
         <span className="font-mono text-xs uppercase tracking-[0.28em] text-muted">
           your card
         </span>
-        <h1 className="text-balance text-2xl font-semibold tracking-tight sm:text-3xl">
+        <h1 className="text-balance text-3xl font-semibold leading-[1.05] tracking-tight sm:text-5xl">
           {data.title}
         </h1>
-        <p className="text-sm text-muted">@{data.nickname}</p>
+        <p className="max-w-xl text-pretty text-sm italic leading-relaxed text-muted sm:text-base">
+          &ldquo;{data.vibeCaption}&rdquo;
+        </p>
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
+          @{data.nickname}
+        </p>
       </header>
 
       <LayoutTabs value={layoutMode} onChange={setLayoutMode} />
