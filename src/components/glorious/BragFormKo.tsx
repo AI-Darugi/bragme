@@ -79,6 +79,15 @@ export function BragFormKo() {
     [],
   );
 
+  useEffect(() => {
+    function onFill(e: Event) {
+      const detail = (e as CustomEvent<string>).detail;
+      if (typeof detail === "string") setStory(detail);
+    }
+    window.addEventListener("bragme:fill", onFill);
+    return () => window.removeEventListener("bragme:fill", onFill);
+  }, []);
+
   function validate(): string | null {
     const raw = story.trim();
     if (raw.length < MIN_STORY)

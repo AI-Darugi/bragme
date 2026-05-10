@@ -20,7 +20,9 @@ export type CardVariant =
   | "ticket"
   | "sticker"
   | "blueprint"
-  | "recipe";
+  | "recipe"
+  | "vinyl"
+  | "idcard";
 
 export type CardData = {
   id: string;
@@ -214,6 +216,24 @@ export function Card({
     case "recipe":
       return (
         <RecipeLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "vinyl":
+      return (
+        <VinylLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "idcard":
+      return (
+        <IdCardLayout
           data={data}
           theme={theme}
           watermark={watermark}
@@ -1700,6 +1720,181 @@ function RecipeLayout({ data, theme, watermark, className }: LayoutProps) {
             </span>
           )}
         </div>
+      </div>
+    </article>
+  );
+}
+
+/**
+ * Vinyl record: 1:1 stone-paper sleeve with a black disk centered. Five
+ * faint white concentric ring "grooves," a theme-gradient label disc at
+ * the center holding the emoji + title + handle, plus a tiny center
+ * spindle hole. Top strip reads "★ Side A ★ · 33⅓ RPM," bottom strip
+ * holds the vibe caption.
+ */
+function VinylLayout({ data, theme, watermark, className }: LayoutProps) {
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="vinyl"
+      className={[
+        "relative w-full max-w-[460px] aspect-square overflow-hidden bg-stone-200 p-4 shadow-2xl",
+        className ?? "",
+      ].join(" ")}
+    >
+      <div className="absolute inset-x-4 top-3 flex justify-between font-mono text-[9px] uppercase tracking-[0.25em] text-stone-700">
+        <span>★ Side A ★</span>
+        <span>33⅓ RPM</span>
+      </div>
+
+      <div className="absolute inset-0 flex items-center justify-center p-6">
+        <div className="relative aspect-square h-full max-h-full rounded-full bg-black shadow-[inset_0_0_20px_rgba(255,255,255,0.05),0_4px_12px_rgba(0,0,0,0.4)]">
+          <div className="absolute inset-3 rounded-full ring-[1px] ring-white/5" />
+          <div className="absolute inset-6 rounded-full ring-[1px] ring-white/5" />
+          <div className="absolute inset-10 rounded-full ring-[1px] ring-white/5" />
+          <div className="absolute inset-14 rounded-full ring-[1px] ring-white/5" />
+          <div className="absolute inset-20 rounded-full ring-[1px] ring-white/5" />
+
+          <div
+            className={[
+              "absolute inset-[28%] flex flex-col items-center justify-center rounded-full p-3 text-center",
+              theme.gradient,
+              theme.text,
+            ].join(" ")}
+          >
+            <span className="mb-1 text-3xl leading-none">{data.emoji}</span>
+            <h2 className="px-2 text-[10px] font-black uppercase leading-tight tracking-tight">
+              {data.title}
+            </h2>
+            <span
+              className={`mt-1 font-mono text-[8px] uppercase tracking-[0.2em] ${theme.subtext}`}
+            >
+              @{data.nickname}
+            </span>
+          </div>
+
+          <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-stone-100 ring-1 ring-stone-300" />
+        </div>
+      </div>
+
+      <div className="absolute inset-x-4 bottom-3 flex items-end justify-between gap-3">
+        <span className="line-clamp-1 max-w-[60%] font-serif text-[10px] italic leading-snug text-stone-700">
+          &ldquo;{data.vibeCaption}&rdquo;
+        </span>
+        {watermark && (
+          <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-stone-500">
+            BRAGME RECORDS
+          </span>
+        )}
+      </div>
+    </article>
+  );
+}
+
+/**
+ * Government / corporate ID card: 5:8 vertical with a theme-color
+ * masthead, square emoji-on-gradient "photo," dept tag pulled from
+ * color_theme, brag points reformatted as ✓ Clearance items, and a
+ * stripe of fake barcode bars at the bottom.
+ */
+function IdCardLayout({ data, theme, watermark, className }: LayoutProps) {
+  const clearances = data.bragPoints.slice(0, 3);
+  const barcode = Array.from({ length: 24 }, (_, i) => 3 + ((i * 7) % 5));
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="idcard"
+      className={[
+        "relative w-full max-w-[340px] aspect-[5/8] overflow-hidden rounded-xl bg-stone-50 text-stone-900 shadow-2xl",
+        className ?? "",
+      ].join(" ")}
+    >
+      <div
+        className={`flex items-center justify-between px-4 py-2 text-white ${theme.gradient}`}
+      >
+        <span className="font-serif text-sm font-black uppercase tracking-tight">
+          BragMe ID
+        </span>
+        <span className="font-mono text-[9px] uppercase tracking-[0.25em] opacity-80">
+          {data.id.slice(0, 6).toUpperCase()}
+        </span>
+      </div>
+
+      <div className="flex h-[calc(100%-2rem)] flex-col p-4">
+        <div
+          className={[
+            "mb-3 flex aspect-square w-full items-center justify-center rounded",
+            theme.gradient,
+          ].join(" ")}
+        >
+          <span className="text-7xl leading-none drop-shadow-[0_3px_6px_rgba(0,0,0,0.25)]">
+            {data.emoji}
+          </span>
+        </div>
+
+        <div>
+          <span className="font-mono text-[8px] uppercase tracking-wider text-stone-500">
+            Name
+          </span>
+          <h2 className="font-serif text-sm font-bold uppercase leading-tight tracking-tight">
+            {data.title}
+          </h2>
+        </div>
+
+        <div className="mt-2 flex justify-between gap-3">
+          <div className="min-w-0">
+            <span className="font-mono text-[8px] uppercase tracking-wider text-stone-500">
+              Dept
+            </span>
+            <p className="truncate text-xs font-bold capitalize">
+              {data.colorTheme}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <span className="font-mono text-[8px] uppercase tracking-wider text-stone-500">
+              Handle
+            </span>
+            <p className="truncate font-mono text-xs">@{data.nickname}</p>
+          </div>
+        </div>
+
+        <div className="mt-2 border-t border-dashed border-stone-300 pt-2">
+          <span className="font-mono text-[8px] uppercase tracking-wider text-stone-500">
+            Clearance
+          </span>
+          <ul className="mt-1 space-y-0.5">
+            {clearances.map((p, i) => (
+              <li
+                key={i}
+                className="flex items-baseline gap-1 text-[10px] leading-tight"
+              >
+                <span className="text-emerald-600">✓</span>
+                <span className="line-clamp-1 flex-1">{p}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="mt-2 border-t border-dashed border-stone-300 pt-2">
+          <p className="line-clamp-2 font-serif text-[10px] italic leading-snug text-stone-700">
+            &ldquo;{data.vibeCaption}&rdquo;
+          </p>
+        </div>
+      </div>
+
+      <div className="absolute inset-x-0 bottom-0 flex h-4 items-end gap-0.5 bg-stone-900 px-3 pb-1">
+        {barcode.map((h, i) => (
+          <div
+            key={i}
+            className="w-0.5 bg-white"
+            style={{ height: `${h * 1.3}px` }}
+          />
+        ))}
+        {watermark && (
+          <span className="ml-auto font-mono text-[7px] uppercase tracking-[0.25em] text-white/70">
+            BRAGME.APP
+          </span>
+        )}
       </div>
     </article>
   );

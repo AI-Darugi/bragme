@@ -54,6 +54,18 @@ export function BragForm() {
     [],
   );
 
+  // DailyPrompt dispatches a 'bragme:fill' CustomEvent with the prompt
+  // text. We listen and drop it into the textarea so click-to-use works
+  // without lifting story state up.
+  useEffect(() => {
+    function onFill(e: Event) {
+      const detail = (e as CustomEvent<string>).detail;
+      if (typeof detail === "string") setStory(detail);
+    }
+    window.addEventListener("bragme:fill", onFill);
+    return () => window.removeEventListener("bragme:fill", onFill);
+  }, []);
+
   function validate(): string | null {
     const raw = story.trim();
     if (raw.length < MIN_STORY)
