@@ -14,7 +14,10 @@ export type CardVariant =
   | "manga"
   | "scrapbook"
   | "businesscard"
-  | "reportcard";
+  | "reportcard"
+  | "movieposter"
+  | "resume"
+  | "ticket";
 
 export type CardData = {
   id: string;
@@ -154,6 +157,33 @@ export function Card({
     case "reportcard":
       return (
         <ReportCardLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "movieposter":
+      return (
+        <MoviePosterLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "resume":
+      return (
+        <ResumeLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "ticket":
+      return (
+        <TicketLayout
           data={data}
           theme={theme}
           watermark={watermark}
@@ -1127,3 +1157,269 @@ function ReportCardLayout({ data, theme, watermark, className }: LayoutProps) {
     </article>
   );
 }
+
+/**
+ * Movie poster: full-bleed gradient with the emoji as a giant centerpiece,
+ * title rendered as the big movie title at the bottom in heavy uppercase
+ * serif, vibe caption as the tagline, brag points as a "STARRING" credit
+ * roll above the title.
+ */
+function MoviePosterLayout({ data, theme, watermark, className }: LayoutProps) {
+  const cast = data.bragPoints.slice(0, 3);
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="movieposter"
+      className={[
+        "relative w-full max-w-[400px] aspect-[2/3] overflow-hidden rounded-md shadow-2xl",
+        theme.gradient,
+        theme.text,
+        className ?? "",
+      ].join(" ")}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 flex items-center justify-center text-[20rem] leading-none opacity-25"
+        aria-hidden
+      >
+        {data.emoji}
+      </div>
+
+      <div className="relative flex h-full flex-col justify-between px-6 py-7">
+        <div
+          className={`flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.3em] ${theme.subtext}`}
+        >
+          <span>★ ★ ★ ★ ★</span>
+          <span>RATED MC</span>
+        </div>
+
+        <div>
+          <p
+            className={`mb-2 font-mono text-[10px] uppercase tracking-[0.25em] ${theme.subtext}`}
+          >
+            ★ Starring ★
+          </p>
+          <ul className="mb-4 space-y-0.5">
+            {cast.map((c, i) => (
+              <li
+                key={i}
+                className="font-serif text-xs italic leading-snug uppercase tracking-wide line-clamp-1"
+              >
+                · {c}
+              </li>
+            ))}
+          </ul>
+
+          <p className="mb-2 font-serif text-sm italic leading-snug">
+            &ldquo;{data.vibeCaption}&rdquo;
+          </p>
+          <h2 className="font-serif text-[2.5rem] font-black uppercase leading-[0.9] tracking-tight">
+            {data.title}
+          </h2>
+
+          <div
+            className={`mt-3 flex items-end justify-between border-t border-current pt-2 opacity-80`}
+          >
+            <span
+              className={`font-mono text-[10px] uppercase tracking-[0.25em] ${theme.subtext}`}
+            >
+              @{data.nickname} productions
+            </span>
+            {watermark && (
+              <span
+                className={`font-mono text-[9px] uppercase tracking-[0.3em] ${theme.subtext}`}
+              >
+                bragme films
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/**
+ * One-page résumé: clean monospace, theme color appears only as an
+ * accent rule. Title becomes the candidate's "name," vibe caption their
+ * "objective," brag points each grouped under a fake "Experience" section
+ * with the theme as the company.
+ */
+function ResumeLayout({ data, theme, watermark, className }: LayoutProps) {
+  const exp = data.bragPoints.slice(0, 4);
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="resume"
+      className={[
+        "relative w-full max-w-[380px] aspect-[9/16] overflow-hidden bg-white p-6 font-mono text-stone-900 shadow-2xl",
+        className ?? "",
+      ].join(" ")}
+    >
+      <header className="border-b border-stone-300 pb-3">
+        <h2 className="font-serif text-xl font-bold uppercase leading-tight tracking-tight">
+          {data.title}
+        </h2>
+        <p className="mt-1 text-[10px] uppercase tracking-[0.25em] text-stone-500">
+          @{data.nickname} · {data.colorTheme} dept.
+        </p>
+      </header>
+
+      <section className="mt-3">
+        <h3 className="text-[9px] uppercase tracking-[0.25em] text-stone-500">
+          Objective
+        </h3>
+        <p className="mt-1 font-serif text-[11px] italic leading-snug text-stone-800">
+          &ldquo;{data.vibeCaption}&rdquo;
+        </p>
+      </section>
+
+      <section className="mt-3">
+        <h3 className="text-[9px] uppercase tracking-[0.25em] text-stone-500">
+          Experience
+        </h3>
+        <ul className="mt-1 space-y-2">
+          {exp.map((p, i) => (
+            <li key={i} className="text-[10px] leading-tight">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-[11px] font-bold uppercase">
+                  Role {String(exp.length - i).padStart(2, "0")}
+                </span>
+                <span className="text-stone-500">
+                  {2025 - i}–{2026 - i}
+                </span>
+              </div>
+              <p className="mt-0.5 font-serif italic text-stone-800">
+                · {p}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="mt-3 border-t border-stone-300 pt-2">
+        <h3 className="text-[9px] uppercase tracking-[0.25em] text-stone-500">
+          Specialty
+        </h3>
+        <div
+          className={[
+            "mt-1 inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-[11px] font-bold capitalize text-white",
+            theme.gradient,
+          ].join(" ")}
+        >
+          <span>{data.emoji}</span>
+          <span>{data.colorTheme} energy</span>
+        </div>
+      </section>
+
+      {watermark && (
+        <p className="absolute inset-x-0 bottom-3 text-center text-[8px] uppercase tracking-[0.3em] text-stone-400">
+          References available · bragme.app
+        </p>
+      )}
+    </article>
+  );
+}
+
+/**
+ * Concert ticket: 5:2 horizontal, a perforation-style dashed gap separates
+ * the main ticket from the stub. Theme gradient anchors the stub on the
+ * right; main ticket is cream paper. Title is the headline, brag points
+ * are the lineup, vibe caption is the tagline.
+ */
+function TicketLayout({ data, theme, watermark, className }: LayoutProps) {
+  const lineup = data.bragPoints.slice(0, 3);
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="ticket"
+      className={[
+        "relative w-full max-w-[520px] aspect-[5/2] overflow-hidden rounded-md font-mono text-stone-900 shadow-2xl",
+        className ?? "",
+      ].join(" ")}
+    >
+      <div className="flex h-full">
+        <div className="flex flex-1 flex-col justify-between bg-[#fdf8e8] p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-700">
+              ★ Admit One ★
+            </span>
+            <span className="text-[9px] uppercase tracking-[0.25em] text-stone-500">
+              No.{data.id.slice(0, 6).toUpperCase()}
+            </span>
+          </div>
+
+          <div>
+            <h2 className="font-serif text-xl font-black uppercase leading-tight tracking-tight">
+              {data.title}
+            </h2>
+            <p className="mt-1 text-[10px] italic text-stone-700 line-clamp-1">
+              &ldquo;{data.vibeCaption}&rdquo;
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 text-[9px] uppercase tracking-wider">
+            <div>
+              <span className="text-stone-500">Lineup</span>
+              <ul className="mt-0.5 space-y-0">
+                {lineup.map((p, i) => (
+                  <li
+                    key={i}
+                    className="line-clamp-1 normal-case text-[10px] font-serif italic text-stone-800"
+                  >
+                    · {p}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <span className="text-stone-500">Venue</span>
+              <p className="mt-0.5 normal-case text-[10px] capitalize text-stone-800">
+                @{data.nickname}
+              </p>
+              <span className="mt-1 block text-stone-500">Section</span>
+              <p className="mt-0.5 normal-case text-[10px] capitalize text-stone-800">
+                {data.colorTheme}
+              </p>
+            </div>
+            <div>
+              <span className="text-stone-500">Date</span>
+              <p className="mt-0.5 normal-case text-[10px] text-stone-800">
+                {new Date().toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="flex shrink-0 flex-col items-center justify-center gap-2 border-l-2 border-dashed border-stone-700 p-3"
+          style={{ width: "30%" }}
+        >
+          <div
+            className={[
+              "flex h-16 w-16 items-center justify-center rounded-full",
+              theme.gradient,
+            ].join(" ")}
+          >
+            <span className="text-3xl leading-none">{data.emoji}</span>
+          </div>
+          <p className="text-center text-[9px] uppercase tracking-[0.25em] text-stone-700">
+            ★ Stub ★
+          </p>
+          <p className="text-center text-[8px] uppercase tracking-[0.2em] text-stone-500">
+            @{data.nickname}
+          </p>
+          {watermark && (
+            <p className="text-[7px] uppercase tracking-[0.3em] text-stone-400">
+              bragme presents
+            </p>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
