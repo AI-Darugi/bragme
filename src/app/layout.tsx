@@ -56,7 +56,17 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        {/* Run before paint to avoid theme flash. Reads localStorage and
+         * applies the saved theme class to <html> synchronously. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('bragme:theme');if(t==='dark'||t==='light'){document.documentElement.classList.add('theme-'+t);}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <TopBar />
         {children}

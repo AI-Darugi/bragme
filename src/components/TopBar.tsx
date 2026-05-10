@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function TopBar() {
   const pathname = usePathname();
@@ -35,6 +36,7 @@ export function TopBar() {
           >
             Mine
           </Link>
+          <ThemeToggle />
         </nav>
       </div>
     </header>

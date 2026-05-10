@@ -6,7 +6,7 @@ const COOKIE_NAME = "bragme_glorious";
 // distinguish the login subpath from the rest of /glorious.
 const LOGIN_PATH = "/glorious/login";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // The login page itself must be reachable without the cookie.

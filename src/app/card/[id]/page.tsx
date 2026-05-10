@@ -4,9 +4,10 @@ import { CardClientView } from "@/components/card/CardClientView";
 import { LineageView } from "@/components/card/LineageView";
 import { MoreLikeThis } from "@/components/card/MoreLikeThis";
 import { getCardById, getLineage, listFeed } from "@/lib/cards-store";
+import { COLOR_THEMES, type ColorTheme } from "@/db/schema";
 
 type RouteParams = { id: string };
-type RouteSearch = { premium?: string };
+type RouteSearch = { premium?: string; theme?: string };
 
 export async function generateMetadata({
   params,
@@ -41,6 +42,13 @@ export async function generateMetadata({
   };
 }
 
+function pickThemeOverride(value: string | undefined): ColorTheme | null {
+  if (!value) return null;
+  return (COLOR_THEMES as readonly string[]).includes(value)
+    ? (value as ColorTheme)
+    : null;
+}
+
 export default async function CardPage({
   params,
   searchParams,
@@ -49,22 +57,26 @@ export default async function CardPage({
   searchParams: Promise<RouteSearch>;
 }) {
   const { id } = await params;
-  const { premium } = await searchParams;
+  const { premium, theme: themeParam } = await searchParams;
   const watermark = !premium;
   const premiumUrl = process.env.LEMON_PREMIUM_URL ?? null;
-  const card = await getCardById(id);
+  const themeOverride = pickThemeOverride(themeParam);
 
-  // Same-theme recommendations — excluded the current card, capped at 4.
-  // Skipped when the card isn't in DB/MOCK (e.g. a freshly-generated
-  // session-only card whose detail comes from sessionStorage).
+  const baseCard = await getCardById(id);
+  // ?theme=ocean → render the card with that gradient regardless of
+  // its real colorTheme. Useful for "what if it was a different vibe"
+  // shareable previews. The original card in DB is unchanged.
+  const card =
+    baseCard && themeOverride
+      ? { ...baseCard, colorTheme: themeOverride }
+      : baseCard;
+
   const related = card
     ? (await listFeed({ theme: card.colorTheme })).cards
         .filter((c) => c.id !== id)
         .slice(0, 4)
     : [];
 
-  // Lineage: parent + siblings + children via parent_id. Mock mode
-  // returns empty since relations aren't tracked client-side.
   const lineage = card ? await getLineage(id) : null;
 
   return (

@@ -7,13 +7,31 @@
   --accent: #f43f5e;
 }
 
+/* System dark — applies only when the user hasn't picked an explicit
+ * "light" override via the toggle. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.theme-light) {
     --background: #0a0a0a;
     --foreground: #fafafa;
     --muted: #a1a1aa;
     --accent: #fb7185;
   }
+}
+
+/* Manual overrides via ThemeToggle (localStorage `bragme:theme`).
+ * These take precedence over the system media query. */
+:root.theme-dark {
+  --background: #0a0a0a;
+  --foreground: #fafafa;
+  --muted: #a1a1aa;
+  --accent: #fb7185;
+}
+
+:root.theme-light {
+  --background: #fafafa;
+  --foreground: #0a0a0a;
+  --muted: #71717a;
+  --accent: #f43f5e;
 }
 
 @theme inline {
