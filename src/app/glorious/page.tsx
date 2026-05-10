@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BragFormKo } from "@/components/glorious/BragFormKo";
+import { GloriousNav } from "@/components/glorious/GloriousNav";
 import { HeroCardStack } from "@/components/landing/HeroCardStack";
 import { FeedCard } from "@/components/FeedCard";
 import { listFeed } from "@/lib/cards-store";
@@ -46,10 +47,7 @@ export default async function GloriousHome() {
 
   return (
     <main className="flex flex-1 flex-col gap-20 px-6 pb-24 pt-10 sm:gap-24 sm:pt-16">
-      <div className="mx-auto w-full max-w-3xl rounded-2xl border border-amber-300/30 bg-amber-100/30 px-4 py-3 text-center text-xs text-amber-900 dark:bg-amber-300/10 dark:text-amber-200">
-        🇰🇷 비공개 한국어 미리보기 · 영어 사이트와 동일한 기능, 카피만
-        한국어로
-      </div>
+      <GloriousNav />
 
       <section className="mx-auto flex w-full max-w-5xl flex-col items-center gap-10">
         <HeroCardStack />
