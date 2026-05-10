@@ -15,7 +15,10 @@ export type LayoutMode =
   | "reportcard"
   | "movieposter"
   | "resume"
-  | "ticket";
+  | "ticket"
+  | "sticker"
+  | "blueprint"
+  | "recipe";
 
 type Props = {
   value: LayoutMode;
@@ -38,6 +41,9 @@ const TABS: Array<{ value: LayoutMode; label: string; sub: string }> = [
   { value: "movieposter", label: "🎬 Movie poster", sub: "2:3 dramatic" },
   { value: "resume", label: "📄 Résumé", sub: "applying for life" },
   { value: "ticket", label: "🎟️ Ticket", sub: "5:2 stub" },
+  { value: "sticker", label: "🌟 Sticker", sub: "die-cut sheet" },
+  { value: "blueprint", label: "📐 Blueprint", sub: "navy grid" },
+  { value: "recipe", label: "🍳 Recipe", sub: "index card" },
 ];
 
 export function LayoutTabs({ value, onChange }: Props) {

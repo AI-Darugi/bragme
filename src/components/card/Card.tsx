@@ -17,7 +17,10 @@ export type CardVariant =
   | "reportcard"
   | "movieposter"
   | "resume"
-  | "ticket";
+  | "ticket"
+  | "sticker"
+  | "blueprint"
+  | "recipe";
 
 export type CardData = {
   id: string;
@@ -184,6 +187,33 @@ export function Card({
     case "ticket":
       return (
         <TicketLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "sticker":
+      return (
+        <StickerLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "blueprint":
+      return (
+        <BlueprintLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "recipe":
+      return (
+        <RecipeLayout
           data={data}
           theme={theme}
           watermark={watermark}
@@ -1426,3 +1456,251 @@ function TicketLayout({ data, theme, watermark, className }: LayoutProps) {
   );
 }
 
+/**
+ * Die-cut sticker on a sheet: 1:1 with a soft white "sticker base"
+ * holding a tilted gradient roundel. The gradient roundel houses the
+ * emoji + title; brag points become tiny chips below. Reads like a
+ * collectible.
+ */
+function StickerLayout({ data, theme, watermark, className }: LayoutProps) {
+  const chips = data.bragPoints.slice(0, 3);
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="sticker"
+      className={[
+        "relative w-full max-w-[440px] aspect-square overflow-hidden bg-[repeating-linear-gradient(45deg,#fafaf3_0,#fafaf3_8px,#f0eee2_8px,#f0eee2_16px)] p-5 shadow-2xl",
+        className ?? "",
+      ].join(" ")}
+    >
+      <div
+        className={[
+          "relative mx-auto h-full w-full -rotate-2 rounded-[2.5rem] p-6 shadow-[0_12px_32px_-8px_rgba(0,0,0,0.35)] ring-4 ring-white",
+          theme.gradient,
+          theme.text,
+        ].join(" ")}
+      >
+        <div className="flex h-full flex-col items-center justify-between text-center">
+          <header className="flex w-full items-center justify-between">
+            <span
+              className={`font-mono text-[9px] uppercase tracking-[0.3em] ${theme.subtext}`}
+            >
+              ★ Sticker ★
+            </span>
+            <span
+              className={`font-mono text-[9px] uppercase tracking-[0.25em] ${theme.subtext}`}
+            >
+              {data.colorTheme}
+            </span>
+          </header>
+
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-7xl leading-none drop-shadow-[0_3px_6px_rgba(0,0,0,0.25)]">
+              {data.emoji}
+            </span>
+            <h2 className="px-2 font-serif text-xl font-black leading-tight tracking-tight">
+              {data.title}
+            </h2>
+          </div>
+
+          <ul className="flex flex-wrap items-center justify-center gap-1.5">
+            {chips.map((p, i) => (
+              <li
+                key={i}
+                className={[
+                  "rounded-full px-2.5 py-0.5 text-[10px] leading-tight",
+                  theme.chip,
+                ].join(" ")}
+              >
+                {p}
+              </li>
+            ))}
+          </ul>
+
+          <footer className="flex w-full items-center justify-between">
+            <span
+              className={`font-mono text-[9px] uppercase tracking-[0.2em] ${theme.subtext}`}
+            >
+              @{data.nickname}
+            </span>
+            {watermark && (
+              <span
+                className={`font-mono text-[9px] uppercase tracking-[0.3em] ${theme.subtext}`}
+              >
+                bragme stickers
+              </span>
+            )}
+          </footer>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/**
+ * Blueprint: navy graph paper, white technical-drawing typography.
+ * Theme color appears only as a small accent rule. Title rendered like
+ * a part name, brag points like spec lines, vibe caption as "notes."
+ */
+function BlueprintLayout({ data, theme, watermark, className }: LayoutProps) {
+  const specs = data.bragPoints.slice(0, 4);
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="blueprint"
+      className={[
+        "relative w-full max-w-[400px] aspect-[9/16] overflow-hidden bg-[#0f2748] p-4 text-white shadow-2xl",
+        className ?? "",
+      ].join(" ")}
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+        backgroundSize: "20px 20px",
+      }}
+    >
+      <div className="flex h-full flex-col border border-white/40 p-4">
+        <div className="flex items-start justify-between border-b border-white/40 pb-2">
+          <div>
+            <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-white/60">
+              BragMe Engineering
+            </p>
+            <p className="mt-1 font-serif text-base font-bold uppercase leading-tight tracking-wide">
+              {data.title}
+            </p>
+          </div>
+          <div
+            className={[
+              "rounded px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-wider text-white",
+              theme.gradient,
+            ].join(" ")}
+          >
+            {data.emoji} {data.colorTheme}
+          </div>
+        </div>
+
+        <div className="mt-3 flex-1">
+          <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-white/60">
+            Specifications
+          </p>
+          <ul className="mt-1.5 space-y-1">
+            {specs.map((p, i) => (
+              <li
+                key={i}
+                className="flex items-baseline gap-2 border-b border-dashed border-white/20 pb-1 font-mono text-[10px] leading-tight"
+              >
+                <span className="text-white/60">
+                  {String(i + 1).padStart(2, "0")}.
+                </span>
+                <span className="flex-1">{p}</span>
+                <span className="text-white/60">✓</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="mt-3 border-t border-white/40 pt-2">
+          <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-white/60">
+            Notes
+          </p>
+          <p className="mt-1 font-serif text-xs italic leading-snug text-white/90">
+            &ldquo;{data.vibeCaption}&rdquo;
+          </p>
+          <div className="mt-2 flex items-end justify-between font-mono text-[9px] uppercase tracking-[0.2em] text-white/60">
+            <span>@{data.nickname}</span>
+            <span>
+              REV {data.id.slice(0, 4).toUpperCase()}
+              {watermark && " · BRAGME.APP"}
+            </span>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/**
+ * Recipe / index card: 7:5 horizontal cream card with a red top stripe.
+ * "Recipe for [TITLE]" headline, brag points become Ingredients,
+ * vibe caption becomes the Method blurb.
+ */
+function RecipeLayout({ data, theme, watermark, className }: LayoutProps) {
+  const ingredients = data.bragPoints.slice(0, 4);
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="recipe"
+      className={[
+        "relative w-full max-w-[480px] aspect-[7/5] overflow-hidden rounded-md bg-[#fdfaf0] text-stone-900 shadow-2xl",
+        className ?? "",
+      ].join(" ")}
+      style={{
+        backgroundImage:
+          "repeating-linear-gradient(transparent 0, transparent 23px, rgba(0,0,0,0.06) 24px)",
+      }}
+    >
+      <div className={`h-2 w-full ${theme.gradient}`} aria-hidden />
+
+      <div className="flex h-[calc(100%-0.5rem)] gap-3 px-5 py-3">
+        <div className="flex flex-1 flex-col">
+          <div className="flex items-center justify-between border-b border-stone-300 pb-1">
+            <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-stone-500">
+              Recipe ★ no.{data.id.slice(0, 3).toUpperCase()}
+            </span>
+            <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-stone-500">
+              serves 1
+            </span>
+          </div>
+
+          <h2 className="mt-1 font-serif text-base font-bold uppercase leading-tight tracking-tight">
+            {data.title}
+          </h2>
+
+          <p className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.25em] text-stone-500">
+            Ingredients
+          </p>
+          <ul className="mt-1 flex-1 space-y-0.5">
+            {ingredients.map((p, i) => (
+              <li
+                key={i}
+                className="flex items-baseline gap-2 font-serif text-[11px] italic leading-snug text-stone-800"
+              >
+                <span className="font-mono not-italic text-[9px] text-stone-500">
+                  · 1 cup
+                </span>
+                <span className="flex-1">{p}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-1 border-t border-dashed border-stone-300 pt-1">
+            <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-stone-500">
+              Method
+            </p>
+            <p className="mt-0.5 line-clamp-2 font-serif text-[11px] italic leading-snug text-stone-700">
+              &ldquo;{data.vibeCaption}&rdquo;
+            </p>
+          </div>
+        </div>
+
+        <div className="flex shrink-0 flex-col items-center justify-center gap-1.5 border-l border-dashed border-stone-300 pl-3">
+          <div
+            className={[
+              "flex h-14 w-14 items-center justify-center rounded-full",
+              theme.gradient,
+            ].join(" ")}
+          >
+            <span className="text-3xl leading-none">{data.emoji}</span>
+          </div>
+          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-stone-500">
+            @{data.nickname}
+          </span>
+          {watermark && (
+            <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-stone-400">
+              bragme kitchen
+            </span>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}

@@ -48,6 +48,9 @@ const VARIANTS_BY_LAYOUT: Record<LayoutMode, CardVariant[]> = {
   movieposter: ["movieposter"],
   resume: ["resume"],
   ticket: ["ticket"],
+  sticker: ["sticker"],
+  blueprint: ["blueprint"],
+  recipe: ["recipe"],
 };
 
 type ReactionCounts = {
@@ -234,6 +237,12 @@ function labelFor(variant: CardVariant): string {
       return "résumé";
     case "ticket":
       return "ticket";
+    case "sticker":
+      return "sticker";
+    case "blueprint":
+      return "blueprint";
+    case "recipe":
+      return "recipe card";
   }
 }
 
