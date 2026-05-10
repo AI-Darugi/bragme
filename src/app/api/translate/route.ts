@@ -98,6 +98,8 @@ export async function POST(request: Request) {
       vibeCaption: translated.vibeCaption,
       emoji: translated.emoji,
       colorTheme: translated.colorTheme,
+      parentId: cardId,
+      relationType: "translate",
     });
 
     const card =

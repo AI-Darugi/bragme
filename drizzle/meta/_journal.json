@@ -15,6 +15,13 @@
       "when": 1778316489937,
       "tag": "0001_add_reactions",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778380223640,
+      "tag": "0002_add_lineage",
+      "breakpoints": true
     }
   ]
 }

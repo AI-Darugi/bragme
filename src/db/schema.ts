@@ -38,6 +38,8 @@ export const cards = pgTable(
     unhingedCount: integer("unhinged_count").notNull().default(0),
     factsCount: integer("facts_count").notNull().default(0),
     feltThatCount: integer("felt_that_count").notNull().default(0),
+    parentId: uuid("parent_id"),
+    relationType: text("relation_type"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -46,6 +48,7 @@ export const cards = pgTable(
   (t) => [
     index("cards_created_at_idx").on(t.createdAt.desc()),
     index("cards_is_public_idx").on(t.isPublic),
+    index("cards_parent_id_idx").on(t.parentId),
   ],
 );
 

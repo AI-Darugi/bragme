@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, lt, or, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, ilike, lt, ne, or, sql, type SQL } from "drizzle-orm";
 import { getDb, schema } from "@/db/client";
 import type { CardData } from "@/components/card/Card";
 import type { ColorTheme } from "@/db/schema";
@@ -287,6 +287,10 @@ export type InsertCardInput = {
   vibeCaption: string;
   emoji: string;
   colorTheme: ColorTheme;
+  /** Card this is derived from (refine / translate). null = origin card. */
+  parentId?: string | null;
+  /** "refine" | "translate" — describes how the parent was transformed. */
+  relationType?: string | null;
 };
 
 export async function insertCard(
@@ -294,8 +298,85 @@ export async function insertCard(
 ): Promise<CardData | null> {
   if (!dbConfigured()) return null;
   const db = getDb();
-  const [row] = await db.insert(schema.cards).values(input).returning();
+  const [row] = await db
+    .insert(schema.cards)
+    .values({
+      ...input,
+      parentId: input.parentId ?? null,
+      relationType: input.relationType ?? null,
+    })
+    .returning();
   return row ? toCardData(row) : null;
+}
+
+/** Lineage = parent + siblings + children. Used by /card/[id] to show
+ * how a card relates to refines / translations. Mock mode returns
+ * empty since relations aren't tracked. */
+export type LineageItem = { card: CardData; relation: string | null };
+
+export type Lineage = {
+  parent: LineageItem | null;
+  siblings: LineageItem[];
+  children: LineageItem[];
+};
+
+export async function getLineage(id: string): Promise<Lineage> {
+  if (!dbConfigured()) {
+    return { parent: null, siblings: [], children: [] };
+  }
+  const db = getDb();
+
+  const [self] = await db
+    .select()
+    .from(schema.cards)
+    .where(eq(schema.cards.id, id))
+    .limit(1);
+  if (!self) return { parent: null, siblings: [], children: [] };
+
+  let parent: LineageItem | null = null;
+  let siblings: LineageItem[] = [];
+
+  if (self.parentId) {
+    const [parentRow] = await db
+      .select()
+      .from(schema.cards)
+      .where(eq(schema.cards.id, self.parentId))
+      .limit(1);
+    if (parentRow) {
+      parent = {
+        card: toCardData(parentRow),
+        relation: self.relationType,
+      };
+    }
+    const siblingRows = await db
+      .select()
+      .from(schema.cards)
+      .where(
+        and(
+          eq(schema.cards.parentId, self.parentId),
+          ne(schema.cards.id, id),
+        ),
+      )
+      .orderBy(desc(schema.cards.createdAt))
+      .limit(8);
+    siblings = siblingRows.map((r) => ({
+      card: toCardData(r),
+      relation: r.relationType,
+    }));
+  }
+
+  const childRows = await db
+    .select()
+    .from(schema.cards)
+    .where(eq(schema.cards.parentId, id))
+    .orderBy(desc(schema.cards.createdAt))
+    .limit(8);
+  const children: LineageItem[] = childRows.map((r) => ({
+    card: toCardData(r),
+    relation: r.relationType,
+  }));
+
+  return { parent, siblings, children };
 }
 
 import type { Reaction } from "@/components/card/Card";

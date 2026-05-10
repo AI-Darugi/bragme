@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { CardDetail } from "@/components/card/CardDetail";
 import { CardClientView } from "@/components/card/CardClientView";
+import { LineageView } from "@/components/card/LineageView";
 import { MoreLikeThis } from "@/components/card/MoreLikeThis";
-import { getCardById, listFeed } from "@/lib/cards-store";
+import { getCardById, getLineage, listFeed } from "@/lib/cards-store";
 
 type RouteParams = { id: string };
 type RouteSearch = { premium?: string };
@@ -62,6 +63,10 @@ export default async function CardPage({
         .slice(0, 4)
     : [];
 
+  // Lineage: parent + siblings + children via parent_id. Mock mode
+  // returns empty since relations aren't tracked client-side.
+  const lineage = card ? await getLineage(id) : null;
+
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col items-center gap-16 px-6 py-12">
       {card ? (
@@ -77,6 +82,7 @@ export default async function CardPage({
           premiumUrl={premiumUrl}
         />
       )}
+      {card && lineage && <LineageView lineage={lineage} />}
       {card && related.length > 0 && (
         <MoreLikeThis cards={related} theme={card.colorTheme} />
       )}
