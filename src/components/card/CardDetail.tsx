@@ -53,6 +53,9 @@ const VARIANTS_BY_LAYOUT: Record<LayoutMode, CardVariant[]> = {
   recipe: ["recipe"],
   vinyl: ["vinyl"],
   idcard: ["idcard"],
+  billboard: ["billboard"],
+  plate: ["plate"],
+  cassette: ["cassette"],
 };
 
 type ReactionCounts = {
@@ -249,6 +252,12 @@ function labelFor(variant: CardVariant): string {
       return "vinyl";
     case "idcard":
       return "ID card";
+    case "billboard":
+      return "billboard";
+    case "plate":
+      return "license plate";
+    case "cassette":
+      return "cassette";
   }
 }
 

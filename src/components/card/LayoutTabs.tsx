@@ -20,7 +20,10 @@ export type LayoutMode =
   | "blueprint"
   | "recipe"
   | "vinyl"
-  | "idcard";
+  | "idcard"
+  | "billboard"
+  | "plate"
+  | "cassette";
 
 type Props = {
   value: LayoutMode;
@@ -48,6 +51,9 @@ const TABS: Array<{ value: LayoutMode; label: string; sub: string }> = [
   { value: "recipe", label: "🍳 Recipe", sub: "index card" },
   { value: "vinyl", label: "🎵 Vinyl", sub: "Side A 33⅓" },
   { value: "idcard", label: "🪪 ID card", sub: "clearance ✓" },
+  { value: "billboard", label: "🛣️ Billboard", sub: "16:5 highway" },
+  { value: "plate", label: "🚗 Plate", sub: "license retro" },
+  { value: "cassette", label: "📼 Cassette", sub: "Side A mixtape" },
 ];
 
 export function LayoutTabs({ value, onChange }: Props) {

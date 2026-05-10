@@ -22,7 +22,10 @@ export type CardVariant =
   | "blueprint"
   | "recipe"
   | "vinyl"
-  | "idcard";
+  | "idcard"
+  | "billboard"
+  | "plate"
+  | "cassette";
 
 export type CardData = {
   id: string;
@@ -234,6 +237,33 @@ export function Card({
     case "idcard":
       return (
         <IdCardLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "billboard":
+      return (
+        <BillboardLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "plate":
+      return (
+        <PlateLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "cassette":
+      return (
+        <CassetteLayout
           data={data}
           theme={theme}
           watermark={watermark}
@@ -1893,6 +1923,217 @@ function IdCardLayout({ data, theme, watermark, className }: LayoutProps) {
         {watermark && (
           <span className="ml-auto font-mono text-[7px] uppercase tracking-[0.25em] text-white/70">
             BRAGME.APP
+          </span>
+        )}
+      </div>
+    </article>
+  );
+}
+
+/**
+ * Highway billboard: 16:5 wide, theme gradient as a backlit panel,
+ * massive bold title sprawled across, brag points as a tiny "see more"
+ * URL strip, emoji as a logo bug. Star tag at the corner.
+ */
+function BillboardLayout({ data, theme, watermark, className }: LayoutProps) {
+  const tagline = data.bragPoints[0];
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="billboard"
+      className={[
+        "relative w-full max-w-[600px] aspect-[16/5] overflow-hidden rounded-md shadow-2xl",
+        theme.gradient,
+        theme.text,
+        className ?? "",
+      ].join(" ")}
+    >
+      <div
+        className={`absolute right-3 top-3 rounded-full bg-black/20 px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.25em] ${theme.subtext}`}
+      >
+        ★ Now playing ★
+      </div>
+
+      <div className="absolute left-3 top-3 flex items-center gap-1.5">
+        <span className="text-2xl leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
+          {data.emoji}
+        </span>
+        <span
+          className={`font-mono text-[9px] uppercase tracking-[0.3em] ${theme.subtext}`}
+        >
+          BragMe
+        </span>
+      </div>
+
+      <div className="flex h-full items-center justify-center px-6 pb-2 pt-8">
+        <h2 className="text-balance text-center font-serif text-[2.2rem] font-black uppercase leading-[0.9] tracking-tight sm:text-[2.6rem]">
+          {data.title}
+        </h2>
+      </div>
+
+      <div
+        className={`absolute inset-x-3 bottom-2 flex items-center justify-between gap-3 font-mono text-[9px] uppercase tracking-[0.25em] ${theme.subtext}`}
+      >
+        <span className="line-clamp-1 italic font-serif normal-case max-w-[55%] text-current">
+          &ldquo;{tagline ?? data.vibeCaption}&rdquo;
+        </span>
+        <span>
+          @{data.nickname}
+          {watermark && " · bragme.app"}
+        </span>
+      </div>
+    </article>
+  );
+}
+
+/**
+ * License plate: 2:1 retro car plate. Off-white reflective base,
+ * embossed-style large characters from the title, tiny "BragMe State"
+ * tag at top + small registration text bottom. Theme color is the
+ * "state seal" pill.
+ */
+function PlateLayout({ data, theme, watermark, className }: LayoutProps) {
+  // Use first 7 chars of title as the "plate number" for visual punch
+  const plate = data.title
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 7);
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="plate"
+      className={[
+        "relative w-full max-w-[520px] aspect-[2/1] overflow-hidden rounded-xl shadow-2xl",
+        "bg-[linear-gradient(180deg,#f5f0dc_0%,#fefbf0_50%,#e9e0c0_100%)]",
+        "ring-4 ring-stone-300",
+        className ?? "",
+      ].join(" ")}
+    >
+      <div className="flex h-full flex-col justify-between p-3">
+        <div className="flex items-center justify-between">
+          <span
+            className={`rounded px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-[0.3em] text-white ${theme.gradient}`}
+          >
+            {data.colorTheme} {data.emoji}
+          </span>
+          <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-stone-700">
+            BragMe State · {new Date().getFullYear()}
+          </span>
+        </div>
+
+        <div className="flex flex-1 items-center justify-center">
+          <h2
+            className="text-center font-serif text-5xl font-black uppercase leading-none tracking-[0.1em] text-stone-900 sm:text-6xl"
+            style={{ textShadow: "0 1px 0 rgba(0,0,0,0.15)" }}
+          >
+            {plate || "BRAG"}
+          </h2>
+        </div>
+
+        <div className="flex items-end justify-between font-mono text-[9px] uppercase tracking-[0.25em] text-stone-700">
+          <span>@{data.nickname}</span>
+          <span className="line-clamp-1 italic font-serif normal-case max-w-[55%]">
+            &ldquo;{data.vibeCaption}&rdquo;
+          </span>
+          {watermark && <span>BMA-{data.id.slice(0, 3).toUpperCase()}</span>}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/**
+ * Cassette tape: 5:3 horizontal mixtape. Plastic shell colored from
+ * theme, two visible reel windows with cross-shapes, white label area
+ * between them holding title + brag points as track listing, "Side A"
+ * + handle at the bottom.
+ */
+function CassetteLayout({ data, theme, watermark, className }: LayoutProps) {
+  const tracks = data.bragPoints.slice(0, 3);
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="cassette"
+      className={[
+        "relative w-full max-w-[520px] aspect-[5/3] overflow-hidden rounded-md shadow-2xl",
+        theme.gradient,
+        className ?? "",
+      ].join(" ")}
+    >
+      <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 py-1.5 text-white">
+        <span className="font-mono text-[9px] font-bold uppercase tracking-[0.3em]">
+          ★ Side A · BragMe Mixtape Vol.{data.id.slice(0, 2).toUpperCase()}
+        </span>
+        <span className="text-base leading-none">{data.emoji}</span>
+      </div>
+
+      <div className="absolute inset-x-3 top-7 bottom-7 flex items-center gap-3">
+        <div className="flex h-full aspect-square shrink-0 items-center justify-center rounded-full bg-stone-900/80 ring-2 ring-white/30">
+          <div className="flex h-2/3 w-2/3 items-center justify-center rounded-full bg-stone-700">
+            <div className="grid h-1/2 w-1/2 grid-cols-3 grid-rows-3 gap-0.5">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <div
+                  key={i}
+                  className={
+                    i === 4 || i === 1 || i === 3 || i === 5 || i === 7
+                      ? "rounded-full bg-stone-900"
+                      : "bg-stone-700"
+                  }
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-1 flex-col justify-center bg-[#fafaf3] px-3 py-2 text-stone-900 ring-1 ring-stone-400">
+          <h2 className="font-serif text-sm font-bold uppercase leading-tight tracking-tight">
+            {data.title}
+          </h2>
+          <ol className="mt-1 space-y-0">
+            {tracks.map((p, i) => (
+              <li
+                key={i}
+                className="flex justify-between gap-2 font-mono text-[9px] leading-tight"
+              >
+                <span className="line-clamp-1 flex-1">
+                  A{i + 1}. {p}
+                </span>
+                <span className="text-stone-500">3:{((i + 4) * 7) % 60}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <div className="flex h-full aspect-square shrink-0 items-center justify-center rounded-full bg-stone-900/80 ring-2 ring-white/30">
+          <div className="flex h-2/3 w-2/3 items-center justify-center rounded-full bg-stone-700">
+            <div className="grid h-1/2 w-1/2 grid-cols-3 grid-rows-3 gap-0.5">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <div
+                  key={i}
+                  className={
+                    i === 4 || i === 1 || i === 3 || i === 5 || i === 7
+                      ? "rounded-full bg-stone-900"
+                      : "bg-stone-700"
+                  }
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="absolute inset-x-0 bottom-0 flex items-center justify-between px-4 py-1.5 text-white">
+        <span className="font-mono text-[9px] uppercase tracking-[0.25em]">
+          @{data.nickname}
+        </span>
+        <span className="line-clamp-1 max-w-[60%] font-serif text-[10px] italic">
+          &ldquo;{data.vibeCaption}&rdquo;
+        </span>
+        {watermark && (
+          <span className="font-mono text-[8px] uppercase tracking-[0.3em] opacity-80">
+            bragme tapes
           </span>
         )}
       </div>
