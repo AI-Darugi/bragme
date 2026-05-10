@@ -28,6 +28,9 @@ const VARIANT_LABEL: Record<CardVariant, string> = {
   trading: "Trading",
   stamp: "Stamp",
   manga: "Manga",
+  scrapbook: "Scrapbook",
+  businesscard: "Business",
+  reportcard: "Report",
 };
 
 export function CardActions({ data, targetSelector, variants }: Props) {

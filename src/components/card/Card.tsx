@@ -11,7 +11,10 @@ export type CardVariant =
   | "notebook"
   | "trading"
   | "stamp"
-  | "manga";
+  | "manga"
+  | "scrapbook"
+  | "businesscard"
+  | "reportcard";
 
 export type CardData = {
   id: string;
@@ -124,6 +127,33 @@ export function Card({
     case "manga":
       return (
         <MangaLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "scrapbook":
+      return (
+        <ScrapbookLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "businesscard":
+      return (
+        <BusinessCardLayout
+          data={data}
+          theme={theme}
+          watermark={watermark}
+          className={className}
+        />
+      );
+    case "reportcard":
+      return (
+        <ReportCardLayout
           data={data}
           theme={theme}
           watermark={watermark}
@@ -846,6 +876,250 @@ function MangaLayout({ data, theme, watermark, className }: LayoutProps) {
               <p className="ml-2 shrink-0 font-mono text-[8px] uppercase tracking-[0.3em] text-black/50">
                 BRAGME MANGA
               </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/**
+ * Scrapbook page: cream paper + decorative washi-tape strips, the
+ * emoji rendered as the centerpiece "photo" inside a slightly
+ * tilted Polaroid-style frame, brag points on yellow sticky-notes
+ * with alternating tilts, vibe caption in handwritten serif italic
+ * at the bottom.
+ */
+function ScrapbookLayout({ data, theme, watermark, className }: LayoutProps) {
+  const stickies = data.bragPoints.slice(0, 3);
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="scrapbook"
+      className={[
+        "relative w-full max-w-[400px] aspect-[9/16] overflow-hidden bg-[#fdf8e8] p-5 text-stone-900 shadow-2xl",
+        className ?? "",
+      ].join(" ")}
+    >
+      <div
+        className="absolute -top-1 left-12 h-5 w-24 -rotate-6 bg-rose-300/70 shadow-sm"
+        aria-hidden
+      />
+      <div
+        className="absolute right-6 top-3 h-5 w-16 rotate-[8deg] bg-amber-300/70 shadow-sm"
+        aria-hidden
+      />
+
+      <div className="relative mx-auto mt-6 w-[68%] -rotate-2 bg-white p-2 shadow-md">
+        <div
+          className={[
+            "flex aspect-square items-center justify-center",
+            theme.gradient,
+          ].join(" ")}
+        >
+          <span className="text-7xl leading-none drop-shadow-[0_4px_8px_rgba(0,0,0,0.2)]">
+            {data.emoji}
+          </span>
+        </div>
+        <p className="pt-1 text-center font-serif text-[10px] italic text-stone-700">
+          @{data.nickname}
+        </p>
+      </div>
+
+      <ul className="mt-4 space-y-2">
+        {stickies.map((p, i) => (
+          <li
+            key={i}
+            className={[
+              "bg-yellow-100/85 px-2.5 py-1.5 font-serif text-xs italic leading-tight text-stone-800 shadow-sm",
+              i % 2 === 0 ? "rotate-[-1deg]" : "rotate-[1deg]",
+            ].join(" ")}
+          >
+            ✏️ {p}
+          </li>
+        ))}
+      </ul>
+
+      <div className="absolute inset-x-0 bottom-3 px-5 text-center">
+        <p className="font-serif text-[10px] italic text-stone-600">
+          &ldquo;{data.vibeCaption}&rdquo;
+        </p>
+        <h2 className="mt-1 font-serif text-base font-bold leading-tight italic text-stone-900">
+          {data.title}
+        </h2>
+        {watermark && (
+          <p className="mt-1 font-mono text-[8px] uppercase tracking-[0.3em] text-stone-400">
+            — bragme journal
+          </p>
+        )}
+      </div>
+    </article>
+  );
+}
+
+/**
+ * Business card: 16:9 horizontal — the only landscape variant. Theme
+ * accent stripe on the left, name/title (= title), role (= vibe
+ * caption) and skills (= brag points) on the left, emoji as a circular
+ * "logo" on the right.
+ */
+function BusinessCardLayout({ data, theme, watermark, className }: LayoutProps) {
+  const skills = data.bragPoints.slice(0, 3);
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="businesscard"
+      className={[
+        "relative w-full max-w-[480px] aspect-[16/9] overflow-hidden rounded-md bg-white text-stone-900 shadow-2xl",
+        className ?? "",
+      ].join(" ")}
+    >
+      <div
+        className={`absolute inset-y-0 left-0 w-2 ${theme.gradient}`}
+        aria-hidden
+      />
+
+      <div className="flex h-full gap-3 py-4 pl-5 pr-4">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <h2 className="font-serif text-lg font-bold leading-tight tracking-tight">
+            {data.title}
+          </h2>
+          <p className="line-clamp-2 text-xs italic leading-snug text-stone-600">
+            {data.vibeCaption}
+          </p>
+
+          <ul className="mt-2 flex-1 space-y-0.5">
+            {skills.map((p, i) => (
+              <li
+                key={i}
+                className="line-clamp-1 text-[10px] leading-tight text-stone-700"
+              >
+                → {p}
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-auto flex items-end justify-between border-t border-stone-300 pt-2">
+            <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-stone-500">
+              @{data.nickname}
+            </span>
+            {watermark && (
+              <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-stone-400">
+                BRAGME.APP
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex shrink-0 items-center justify-center">
+          <div
+            className={[
+              "flex h-16 w-16 items-center justify-center rounded-full",
+              theme.gradient,
+            ].join(" ")}
+          >
+            <span className="text-3xl leading-none">{data.emoji}</span>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/**
+ * School report card: cream paper, double-line border, "BragMe Academy"
+ * letterhead, brag points listed as subjects with A+ grades, vibe
+ * caption as the teacher's comment. Theme color appears as a small
+ * "major" stamp.
+ */
+function ReportCardLayout({ data, theme, watermark, className }: LayoutProps) {
+  const subjects = data.bragPoints.slice(0, 4);
+  return (
+    <article
+      data-card-id={data.id}
+      data-variant="reportcard"
+      className={[
+        "relative w-full max-w-[380px] aspect-[9/16] overflow-hidden bg-[#fafaf3] text-stone-900 shadow-2xl",
+        className ?? "",
+      ].join(" ")}
+    >
+      <div className="m-3 flex h-[calc(100%-1.5rem)] flex-col border-2 border-stone-800">
+        <div className="border-b-2 border-stone-800 p-3 text-center">
+          <h2 className="font-serif text-lg font-bold uppercase tracking-tight">
+            BragMe Academy
+          </h2>
+          <p className="font-serif text-[10px] italic text-stone-600">
+            Annual Report Card · {new Date().getFullYear()}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 border-b-2 border-stone-800 p-3 text-xs">
+          <div>
+            <span className="font-mono text-[9px] uppercase tracking-wider text-stone-500">
+              Student
+            </span>
+            <p className="font-serif font-bold leading-tight">
+              @{data.nickname}
+            </p>
+          </div>
+          <div>
+            <span className="font-mono text-[9px] uppercase tracking-wider text-stone-500">
+              Major
+            </span>
+            <p
+              className={[
+                "inline-block rounded px-1.5 py-0.5 font-serif text-[11px] font-bold capitalize leading-tight text-white",
+                theme.gradient,
+              ].join(" ")}
+            >
+              {data.colorTheme} {data.emoji}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-1 flex-col p-3">
+          <span className="mb-2 font-mono text-[9px] uppercase tracking-wider text-stone-500">
+            Subjects
+          </span>
+          <ul className="flex-1 space-y-1.5">
+            {subjects.map((p, i) => (
+              <li
+                key={i}
+                className="flex justify-between gap-2 border-b border-dashed border-stone-300 pb-1"
+              >
+                <span className="line-clamp-2 flex-1 font-serif text-[11px] italic leading-tight">
+                  {p}
+                </span>
+                <span className="font-mono text-sm font-bold text-emerald-700">
+                  A+
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="border-t-2 border-stone-800 p-3">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-stone-500">
+            Distinction
+          </span>
+          <p className="line-clamp-2 font-serif text-xs font-bold uppercase leading-tight tracking-tight">
+            ★ {data.title} ★
+          </p>
+          <span className="mt-2 block font-mono text-[9px] uppercase tracking-wider text-stone-500">
+            Teacher&apos;s Comment
+          </span>
+          <p className="mt-0.5 line-clamp-2 font-serif text-[11px] italic leading-snug text-stone-700">
+            &ldquo;{data.vibeCaption}&rdquo;
+          </p>
+          <div className="mt-2 flex items-end justify-between">
+            <p className="font-serif text-[11px] italic text-stone-600">
+              — Headmaster
+            </p>
+            {watermark && (
+              <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-stone-400">
+                BRAGME.APP
+              </span>
             )}
           </div>
         </div>

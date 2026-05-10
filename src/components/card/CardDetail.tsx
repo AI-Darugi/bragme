@@ -42,6 +42,9 @@ const VARIANTS_BY_LAYOUT: Record<LayoutMode, CardVariant[]> = {
   trading: ["trading"],
   stamp: ["stamp"],
   manga: ["manga"],
+  scrapbook: ["scrapbook"],
+  businesscard: ["businesscard"],
+  reportcard: ["reportcard"],
 };
 
 type ReactionCounts = {
@@ -216,6 +219,12 @@ function labelFor(variant: CardVariant): string {
       return "stamp";
     case "manga":
       return "manga panel";
+    case "scrapbook":
+      return "scrapbook";
+    case "businesscard":
+      return "business card";
+    case "reportcard":
+      return "report card";
   }
 }
 
